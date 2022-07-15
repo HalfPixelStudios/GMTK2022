@@ -18,5 +18,7 @@ bevy = { version = "0.7.0", default-features = false, features = [ "render", "an
 bevy_bobs = { git = "https://github.com/HalfPixelStudios/bevy_bobs", features = ["health_bar", "serde", "prefab"] }
 
 autodefault = { version = "2.0.0" }
+bevy_asset_ron = { version = "0.4"}
 serde = { version = "1", features = ["derive"] }
 rand = { version = "0.8.5" }
+
