@@ -10,6 +10,7 @@ dependencies = [
  "bevy",
  "bevy_bobs",
  "rand",
+ "serde",
 ]
 
 [[package]]
