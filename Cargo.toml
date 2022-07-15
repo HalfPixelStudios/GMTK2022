@@ -1,8 +1,19 @@
 [package]
-name = "bevy_github_ci_template"
+name = "GMTK2022"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
+authors = ["nithinmuthukumar", "MrPicklePinosaur"]
+description = ""
+repository = "https://github.com/HalfPixelStudios/GMTK2022"
+
+[features]
+default = ["bevy_sprite", "bevy_ui"]
+bevy_sprite = ["bevy/bevy_sprite", "bevy/bevy_render"]
+bevy_ui = ["bevy/bevy_ui", "bevy/bevy_text", "bevy/bevy_render"]
 
 [dependencies]
-bevy = "0.6"
+bevy = { version = "0.7.0", default-features = false, features = [ "render", "animation", "bevy_winit", "bevy_gilrs", "png", "hdr", "filesystem_watcher", "x11", "trace" ] }
+# bevy_ecs_ldtk = { version = "0.3.0", features = [ "atlas" ] }
+bevy_bobs = { git = "https://github.com/HalfPixelStudios/bevy_bobs", features = ["health_bar", "serde", "prefab"] }
+autodefault = { version = "2.0.0" }
