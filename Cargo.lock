@@ -9,6 +9,7 @@ dependencies = [
  "autodefault",
  "bevy",
  "bevy_bobs",
+ "rand",
 ]
 
 [[package]]
