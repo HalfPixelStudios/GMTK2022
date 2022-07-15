@@ -27,11 +27,11 @@ pub struct Dice {
 }
 
 impl Dice {
-    pub fn roll(&self) -> &Side {
+    pub fn roll(&self) -> Side {
         use rand::{thread_rng, Rng};
 
         let face = thread_rng().gen_range(0..6);
-        &self.sides[face]
+        self.sides[face].clone()
     }
 
     pub fn replace(&mut self, index: usize, side: Side) {
@@ -71,6 +71,14 @@ impl Stats {
 
     pub fn add_buff(&mut self) {}
     pub fn clear_buffs(&mut self) {}
+}
+
+pub struct TroopPlugin;
+
+impl Plugin for TroopPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<SpawnTroopEvent>().add_system(spawn_troop);
+    }
 }
 
 pub fn spawn_troop(
