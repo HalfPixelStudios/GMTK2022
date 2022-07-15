@@ -1,8 +1,5 @@
-
 pub mod assetloader;
-
-pub mod enemy;
+pub mod buff;
 pub mod game;
-pub mod player;
 pub mod prefab;
-
+pub mod troop;
