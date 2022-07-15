@@ -20,15 +20,7 @@ pub struct TroopPrefab {
     pub display_name: String,
     pub class: Class,
     pub stats: Stats,
-    pub default_dice: Dice,
-    pub sprite_index: usize,
-}
-
-#[derive(Deserialize, Clone)]
-pub struct EnemyPrefab {
-    pub display_name: String,
-    pub stats: Stats,
-    pub default_dice: Dice,
+    pub default_dice: DicePrefab,
     pub sprite_index: usize,
 }
 
@@ -40,22 +32,6 @@ pub enum Side {
 }
 
 #[derive(Deserialize, Clone)]
-pub struct Dice {
+pub struct DicePrefab {
     pub sides: [Side; 6],
-}
-
-impl Dice {
-    pub fn roll(&self) -> &Side {
-        use rand::{thread_rng, Rng};
-
-        let face = thread_rng().gen_range(0..6);
-        &self.sides[face]
-    }
-
-    pub fn replace(&mut self, index: usize, side: Side) {
-        // TODO not safe
-        self.sides[index] = side;
-    }
-
-    pub fn modify_number(&mut self, index: usize, modify: i32) {}
 }
