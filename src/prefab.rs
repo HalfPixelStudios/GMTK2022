@@ -1,3 +1,5 @@
+use bevy::prelude::*;
+use bevy_bobs::prefab::PrefabLib;
 use serde::Deserialize;
 
 #[derive(Deserialize, Clone)]
@@ -18,17 +20,8 @@ pub enum Class {
 #[derive(Deserialize, Clone)]
 pub struct TroopPrefab {
     pub display_name: String,
-    pub class: Class,
     pub stats: Stats,
-    pub default_dice: Dice,
-    pub sprite_index: usize,
-}
-
-#[derive(Deserialize, Clone)]
-pub struct EnemyPrefab {
-    pub display_name: String,
-    pub stats: Stats,
-    pub default_dice: Dice,
+    pub default_dice: DicePrefab,
     pub sprite_index: usize,
 }
 
@@ -40,22 +33,57 @@ pub enum Side {
 }
 
 #[derive(Deserialize, Clone)]
-pub struct Dice {
+pub struct DicePrefab {
     pub sides: [Side; 6],
 }
 
-impl Dice {
-    pub fn roll(&self) -> &Side {
-        use rand::{thread_rng, Rng};
+const RON_STRING: &str = r#"
+{
+    "warrior": (
+        display_name: "warrior",
+        stats: (
+            base_health: 10,
+            base_speed: 120,
+            base_defence: 10,
+        ),
+        default_dice: (
+            sides: (
+                Blank,
+                Number(2),
+                Number(3),
+                Number(4),
+                Number(5),
+                Ability("stun"),
+            )
+        ),
+        sprite_index: 1,
+    ),
+    "orc": (
+        display_name: "orc",
+        stats: (
+            base_health: 5,
+            base_speed: 100,
+            base_defence: 10,
+        ),
+        default_dice: (
+            sides: (
+                Number(2),
+                Number(2),
+                Number(2),
+                Number(2),
+                Number(2),
+                Number(2),
+            )
+        ),
+        sprite_index: 21,
+    ),
+}
+"#;
 
-        let face = thread_rng().gen_range(0..6);
-        &self.sides[face]
+pub struct PrefabPlugin;
+
+impl Plugin for PrefabPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(PrefabLib::<TroopPrefab>::new(RON_STRING));
     }
-
-    pub fn replace(&mut self, index: usize, side: Side) {
-        // TODO not safe
-        self.sides[index] = side;
-    }
-
-    pub fn modify_number(&mut self, index: usize, modify: i32) {}
 }
