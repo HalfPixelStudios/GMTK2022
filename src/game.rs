@@ -1,8 +1,8 @@
 use bevy::prelude::*;
-use bevy_bobs::prefab::PrefabId;
+use bevy_bobs::prefab::{PrefabId, PrefabLib};
 
 use crate::{
-    prefab::Side,
+    prefab::{Side, TroopPrefab},
     troop::{self, DespawnTroopEvent, Dice, SpawnTroopEvent, Stats, Tag, Troop},
 };
 
@@ -23,8 +23,18 @@ pub struct Game {
     pub turn_order: Vec<Entity>,
 }
 
-pub struct Party {}
-pub struct Levels {}
+// upgradeable party (reinitialize on every level)
+pub struct Party {
+    troops: Vec<TroopPrefab>,
+}
+pub struct Level {
+    pub enemies: Vec<PrefabId>,
+    // pub rewards:
+}
+
+pub struct Levels {
+    levels: Vec<Level>,
+}
 
 impl Game {
     pub fn new() -> Self {
@@ -35,11 +45,6 @@ impl Game {
             turn_order: vec![],
         }
     }
-}
-
-pub struct Level {
-    pub enemies: Vec<PrefabId>,
-    // pub rewards:
 }
 
 pub struct GamePlugin;
@@ -62,24 +67,54 @@ impl Plugin for GamePlugin {
     }
 }
 
-fn setup(mut spawn_troop_writer: EventWriter<SpawnTroopEvent>) {
-    spawn_troop_writer.send(SpawnTroopEvent {
-        id: "warrior".into(),
-        tag: Tag::Player,
-        spawn_pos: Vec2::ZERO,
+fn setup(mut cmd: Commands, prefab_lib: Res<PrefabLib<TroopPrefab>>) {
+    cmd.insert_resource(Party {
+        troops: vec![
+            prefab_lib.get("warrior").unwrap().clone(),
+            prefab_lib.get("warrior").unwrap().clone(),
+            prefab_lib.get("warrior").unwrap().clone(),
+            prefab_lib.get("warrior").unwrap().clone(),
+        ],
     });
-    spawn_troop_writer.send(SpawnTroopEvent {
-        id: "orc".into(),
-        tag: Tag::Enemy,
-        spawn_pos: Vec2::new(100., 100.),
+    cmd.insert_resource(Levels {
+        levels: vec![Level {
+            enemies: vec!["orc".into(), "orc".into(), "orc".into(), "orc".into()],
+        }],
     });
 }
 
-fn start_level(mut game: ResMut<Game>, mut events: EventReader<StartLevelEvent>) {
+fn start_level(
+    mut game: ResMut<Game>,
+    party_res: Res<Party>,
+    levels_res: Res<Levels>,
+    mut events: EventReader<StartLevelEvent>,
+    mut writer: EventWriter<SpawnTroopEvent>,
+) {
     for StartLevelEvent { level } in events.iter() {
         game.level = *level;
 
         // repopulate both player and enemy lists
+        game.party.clear();
+        game.enemies.clear();
+
+        // NOTE: the spawn troop handler will add the new entity to game.party and game.enemies
+        // (dont like how the logic is somewhere else)
+        for (i, troop) in party_res.troops.iter().enumerate() {
+            writer.send(SpawnTroopEvent {
+                spawn_info: troop::SpawnInfo::Prefab(troop.clone()),
+                tag: Tag::Player,
+                spawn_pos: Vec2::new((i as f32) * 100., 0.),
+            });
+        }
+
+        let level = levels_res.levels.get(game.level).unwrap();
+        for (i, enemy) in level.enemies.iter().enumerate() {
+            writer.send(SpawnTroopEvent {
+                spawn_info: troop::SpawnInfo::Id(enemy.clone()),
+                tag: Tag::Enemy,
+                spawn_pos: Vec2::new((i as f32) * 100., 100.),
+            });
+        }
     }
 }
 
@@ -89,6 +124,8 @@ fn start_round(
     troop_query: Query<(Entity, &Stats), With<Troop>>,
 ) {
     for _ in events.iter() {
+        game.turn_order.clear();
+
         // determine attacking order based on speed
         // all this code could be simplified
         let mut attack_order: Vec<(Entity, &Stats)> = vec![];
@@ -196,6 +233,9 @@ fn troop_died_event(
                 Tag::Enemy => &mut game.enemies,
             }
             .retain(|e| e != entity);
+
+            // also remove them from the attack order
+            game.turn_order.retain(|e| e != entity);
 
             cmd.entity(*entity).despawn();
 

@@ -10,8 +10,12 @@ use crate::{
     prefab::{DicePrefab, Side, TroopPrefab},
 };
 
+pub enum SpawnInfo {
+    Id(PrefabId),
+    Prefab(TroopPrefab),
+}
 pub struct SpawnTroopEvent {
-    pub id: PrefabId,
+    pub spawn_info: SpawnInfo,
     pub tag: Tag,
     pub spawn_pos: Vec2,
 }
@@ -111,45 +115,53 @@ fn spawn_troop_system(
     prefab_lib: Res<PrefabLib<TroopPrefab>>,
     asset_sheet: Res<AssetSheets>,
 ) {
-    for SpawnTroopEvent { id, tag, spawn_pos } in events.iter() {
-        if let Some(prefab) = prefab_lib.get(id) {
-            let e = cmd.spawn().id();
-            cmd.entity(e)
-                .insert(Troop)
-                .insert_bundle(SpriteSheetBundle {
-                    sprite: TextureAtlasSprite {
-                        index: prefab.sprite_index,
-                        ..default()
-                    },
-                    texture_atlas: asset_sheet.0.get(0).unwrap().clone(),
-                    transform: Transform {
-                        translation: spawn_pos.extend(0.),
-                        ..default()
-                    },
-                    ..default()
-                })
-                .insert(Dice {
-                    sides: prefab.default_dice.sides.clone(),
-                })
-                .insert(Stats::new(
-                    prefab.stats.base_health,
-                    prefab.stats.base_speed,
-                    prefab.stats.base_defence,
-                ))
-                // TODO this is stupid
-                .insert(match tag {
-                    Tag::Player => Tag::Player,
-                    Tag::Enemy => Tag::Enemy,
-                });
+    for SpawnTroopEvent {
+        spawn_info,
+        tag,
+        spawn_pos,
+    } in events.iter()
+    {
+        let prefab = match spawn_info.clone() {
+            SpawnInfo::Id(id) => prefab_lib.get(&id).unwrap(),
+            SpawnInfo::Prefab(prefab) => &prefab,
+        };
 
-            // add newly spawned troop to game ref
-            match tag {
-                Tag::Player => {
-                    game.party.push(e);
-                }
-                Tag::Enemy => {
-                    game.enemies.push(e);
-                }
+        let e = cmd.spawn().id();
+        cmd.entity(e)
+            .insert(Troop)
+            .insert_bundle(SpriteSheetBundle {
+                sprite: TextureAtlasSprite {
+                    index: prefab.sprite_index,
+                    ..default()
+                },
+                texture_atlas: asset_sheet.0.get(0).unwrap().clone(),
+                transform: Transform {
+                    translation: spawn_pos.extend(0.),
+                    ..default()
+                },
+                ..default()
+            })
+            .insert(Dice {
+                sides: prefab.default_dice.sides.clone(),
+            })
+            .insert(Stats::new(
+                prefab.stats.base_health,
+                prefab.stats.base_speed,
+                prefab.stats.base_defence,
+            ))
+            // TODO this is stupid
+            .insert(match tag {
+                Tag::Player => Tag::Player,
+                Tag::Enemy => Tag::Enemy,
+            });
+
+        // add newly spawned troop to game ref
+        match tag {
+            Tag::Player => {
+                game.party.push(e);
+            }
+            Tag::Enemy => {
+                game.enemies.push(e);
             }
         }
     }

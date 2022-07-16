@@ -43,7 +43,7 @@ const RON_STRING: &str = r#"
         display_name: "warrior",
         stats: (
             base_health: 10,
-            base_speed: 100,
+            base_speed: 120,
             base_defence: 10,
         ),
         default_dice: (

@@ -33,7 +33,7 @@ fn debug(
 ) {
     if keys.just_pressed(KeyCode::S) {
         info!("pressed: starting round");
-        start_round_writer.send(StartLevelEvent { level: 1 });
+        start_round_writer.send(StartLevelEvent { level: 0 });
     }
     if keys.just_pressed(KeyCode::T) {
         info!("pressed: next turn");
