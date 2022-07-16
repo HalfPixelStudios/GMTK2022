@@ -1,13 +1,14 @@
 use bevy::prelude::*;
 use bevy_bobs::prefab::PrefabId;
 
-use crate::assetloader::{AssetSheets, PrefabData};
+use crate::assetloader::{AssetSheets, DiceAsset, PrefabData};
 
 pub struct DicePlugin;
 impl Plugin for DicePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<RollDiceEvent>()
-            .add_startup_system(spawn_dice);
+            .add_system(spawn_dice)
+            .add_system(roll_dice);
     }
 }
 #[derive(Component)]
@@ -22,7 +23,7 @@ impl DiceRoll {
     }
 }
 pub struct RollDiceEvent {
-    id: String,
+    pub id: String,
 }
 
 fn spawn_dice(
@@ -30,14 +31,20 @@ fn spawn_dice(
     sheets: Res<AssetSheets>,
     mut events: EventReader<RollDiceEvent>,
     dice_data: Res<PrefabData>,
+    dices: Res<Assets<DiceAsset>>,
 ) {
     for e in events.iter() {
+        info!("{:?}", dices.get(dice_data.0.get(&e.id).unwrap()));
+
+        let data = dices.get(dice_data.0.get(&e.id).unwrap()).unwrap();
+
         cmd.spawn_bundle(SpriteSheetBundle {
             sprite: TextureAtlasSprite {
                 index: 0,
                 ..default()
             },
-            texture_atlas: sheets.0.get(&"dice".to_string()).unwrap().clone(),
+            texture_atlas: sheets.0.get(&data.sheet).unwrap().clone(),
+            transform: Transform::from_scale(Vec3::splat(6.0)),
             ..default()
         })
         .insert(DiceRoll {

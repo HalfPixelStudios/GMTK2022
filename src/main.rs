@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use GMTK2022::animation::*;
 use GMTK2022::assetloader::*;
 use GMTK2022::dice::DicePlugin;
+use GMTK2022::dice::RollDiceEvent;
 use GMTK2022::{
     assetloader::*,
     game::{GamePlugin, NextTurnEvent, StartLevelEvent, StartRoundEvent},
@@ -29,7 +30,7 @@ fn main() {
         .add_plugin(AssetLoadPlugin)
         .add_plugin(AnimationPlugin)
         .add_system(setup)
-        .add_system(spawn_devil)
+        // .add_system(spawn_devil)
         .insert_resource(RunOnce { ran: false })
         .add_startup_system(setup)
         .add_plugin(DicePlugin);
@@ -83,7 +84,15 @@ fn debug(
     keys: Res<Input<KeyCode>>,
     mut start_round_writer: EventWriter<StartLevelEvent>,
     mut next_turn_writer: EventWriter<NextTurnEvent>,
+    mut roll_dice: EventWriter<RollDiceEvent>,
 ) {
+    if keys.just_pressed(KeyCode::A) {
+        info!("sent");
+        roll_dice.send(RollDiceEvent {
+            id: "wizard.dice".to_string(),
+        })
+    }
+
     // if keys.just_pressed(KeyCode::S) {
     //     info!("pressed: starting round");
     //     start_round_writer.send(StartLevelEvent { level: 0 });

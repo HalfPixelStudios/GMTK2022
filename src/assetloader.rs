@@ -19,7 +19,6 @@ pub struct AnimationAsset {
 pub struct DiceAsset {
     pub sheet: String,
     pub sides: [Side; 6],
-    pub frames: [i32; 6],
 }
 
 pub struct AssetSheets(pub HashMap<String, Handle<TextureAtlas>>);
@@ -63,8 +62,10 @@ pub fn load_assets(
 
     cmd.insert_resource(AssetSheets(sheets));
 
-    let mut ani_data: HashMap<String, HandleUntyped> = HashMap::new();
+    let mut data: HashMap<String, HandleUntyped> = HashMap::new();
     let red_demon: Handle<AnimationAsset> = assets.load("anis/RedDemon.ani");
-    ani_data.insert("RedDemon.ani".to_string(), red_demon.clone_untyped());
-    cmd.insert_resource(PrefabData(ani_data));
+    data.insert("RedDemon.ani".to_string(), red_demon.clone_untyped());
+    let wizard_dice: Handle<DiceAsset> = assets.load("dices/wizard.dice");
+    data.insert("wizard.dice".to_string(), wizard_dice.clone_untyped());
+    cmd.insert_resource(PrefabData(data));
 }
