@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+#[derive(Clone)]
 pub enum BuffType {
 
     // buffs
@@ -21,17 +22,20 @@ pub enum BuffType {
 
 }
 
+#[derive(Clone)]
 pub enum BuffLifetime {
     Round,       // lasts one round
     Rounds(u32), // lasts specified number of rounds
     Level,       // lasts the entire level
 }
 
+#[derive(Clone)]
 pub enum Augment {
     Additive(f32),
     Multiplicative(f32),
 }
 
+#[derive(Clone)]
 pub struct Buff {
     pub buff_type: BuffType,
     pub lifetime: BuffLifetime,
@@ -85,9 +89,19 @@ impl Buff {
     */
 }
 
-#[derive(Component)]
-pub struct StatusEffects {
-    pub effects: Vec<Buff>
+#[derive(Component, Deref, DerefMut)]
+pub struct StatusEffects(pub Vec<Buff>);
+
+impl StatusEffects {
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+    pub fn add_effect(&mut self, buff: Buff) {
+        // remove any existing buffs of same type (discriminant on only enum variant and not
+        // contents)
+        self.retain(|b| std::mem::discriminant(&buff.buff_type) != std::mem::discriminant(&b.buff_type));
+        self.push(buff);
+    }
 }
 
 pub struct BuffPlugin;
@@ -98,6 +112,32 @@ impl Plugin for BuffPlugin {
     }
 }
 
-pub fn buff_lifetime_system() {
+pub fn buff_lifetime_system(mut query: Query<&mut StatusEffects>) {
 
+    for mut effects in query.iter_mut() {
+        
+        // remove expired effects
+        effects.retain(|buff| {
+
+            if let BuffLifetime::Round = buff.lifetime {
+                return false;
+            }
+            if let BuffLifetime::Rounds(rounds) = buff.lifetime {
+                if rounds == 0 {
+                    return false;
+                }
+            }
+            true
+        });
+
+        // tick down rounds
+        for mut buff in effects.iter_mut() {
+
+            if let BuffLifetime::Rounds(round) = buff.lifetime {
+                buff.lifetime = BuffLifetime::Rounds(round-1);
+            }
+
+        }
+
+    }
 }
