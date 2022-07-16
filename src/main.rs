@@ -76,6 +76,9 @@ fn spawn_devil(
                 finished: false,
                 index: -1,
             });
+    }
+}
+
 fn debug(
     keys: Res<Input<KeyCode>>,
     mut start_round_writer: EventWriter<StartLevelEvent>,
