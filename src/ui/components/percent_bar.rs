@@ -9,6 +9,8 @@ pub struct PercentBarProps {
     pub percent: f32,
     pub width: f32,
     pub height: f32,
+    #[prop_field(Styles)]
+    pub styles: Option<Style>,
 }
 
 impl Default for PercentBarProps {
@@ -17,6 +19,7 @@ impl Default for PercentBarProps {
             percent: 1.,
             width: 100.,
             height: 10.,
+            styles: Some(Style::default())
         }
     }
 }
@@ -44,6 +47,7 @@ pub fn PercentBar(props: PercentBarProps) {
         layout_type: StyleProp::Value(LayoutType::Row),
         ..Default::default()
     };
+    let container_style = container_style.with_style(&props.styles);
 
     rsx! {
         <Element styles={Some(container_style)}>
