@@ -5,6 +5,8 @@ use kayak_ui::{
     widgets::*,
 };
 
+use super::components::stats_board::StatsBoard;
+
 pub struct InGamePlugin;
 
 impl Plugin for InGamePlugin {
@@ -28,7 +30,7 @@ fn render_ui(mut cmd: Commands) {
         };
         render! {
             <kayak_ui::widgets::App>
-                <Background styles={Some(bg_style)}></Background>
+                <StatsBoard troop_name={"warrior".into()} health_percent={0.75} speed={10} defence={20}></StatsBoard>
             </kayak_ui::widgets::App>
         }
     });
