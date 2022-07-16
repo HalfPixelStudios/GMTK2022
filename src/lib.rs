@@ -8,3 +8,5 @@ pub mod prefab;
 pub mod troop;
 pub mod ui;
 pub mod map;
+pub mod layers;
+pub mod camera;
