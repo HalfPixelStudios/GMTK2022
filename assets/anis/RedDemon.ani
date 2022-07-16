@@ -1,0 +1,8 @@
+AnimationAsset(
+    anims: {
+        Idle: (627,631),
+        Attack: (840,844)
+    },
+    seconds: 2
+    )
+
