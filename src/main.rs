@@ -1,3 +1,6 @@
+use GMTK2022::camera::CameraPlugin;
+use GMTK2022::layers::Layers;
+use GMTK2022::map::MapPlugin;
 use GMTK2022::ui::UIPlugin;
 use bevy::prelude::*;
 use GMTK2022::animation::*;
@@ -28,13 +31,14 @@ fn main() {
     app.add_plugins(DefaultPlugins)
         .add_plugin(AssetLoadPlugin)
         .add_plugin(AnimationPlugin)
-        .add_system(setup)
         // .add_system(spawn_devil)
         .insert_resource(RunOnce { ran: false })
-        .add_startup_system(setup)
+        .insert_resource(Layers::new())
         .add_plugin(DicePlugin);
 
     app.add_plugin(GamePlugin)
+        .add_plugin(CameraPlugin)
+        .add_plugin(MapPlugin)
         .add_plugin(UIPlugin)
         .add_plugin(PrefabPlugin)
         .add_plugin(TroopPlugin);
@@ -42,9 +46,6 @@ fn main() {
     app.add_system(debug);
 
     app.run();
-}
-fn setup(mut commands: Commands, sheets: Res<AssetSheets>) {
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 }
 
 fn spawn_devil(
