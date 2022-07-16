@@ -89,18 +89,64 @@ impl Buff {
     */
 }
 
-#[derive(Component, Deref, DerefMut)]
-pub struct StatusEffects(pub Vec<Buff>);
+#[derive(Component)]
+pub struct Stats {
+    health: u32,
+    speed: u32,
+    defence: u32,
 
-impl StatusEffects {
-    pub fn clear(&mut self) {
-        self.0.clear();
+    buffs: Vec<Buff>,
+}
+
+impl Stats {
+    pub fn new(health: u32, speed: u32, defence: u32) -> Self {
+        Stats {
+            health,
+            speed,
+            defence,
+
+            buffs: vec!(),
+        }
     }
-    pub fn add_effect(&mut self, buff: Buff) {
+
+    pub fn health(&self) -> u32 {
+        self.health
+    }
+    pub fn take_damage(&mut self, amount: u32) {
+        // take damage taking defense into account
+        self.health = if amount > self.health {
+            0
+        } else {
+            self.health - amount
+        };
+    }
+    pub fn is_dead(&self) -> bool {
+        self.health == 0
+    }
+
+    pub fn speed(&self) -> u32 {
+        self.speed
+    }
+
+    pub fn defence(&self) -> u32 {
+        self.defence
+    }
+
+    pub fn clear_buffs(&mut self) {
+        self.buffs.clear();
+    }
+    pub fn add_buff(&mut self, buff: Buff) {
         // remove any existing buffs of same type (discriminant on only enum variant and not
         // contents)
-        self.retain(|b| std::mem::discriminant(&buff.buff_type) != std::mem::discriminant(&b.buff_type));
-        self.push(buff);
+        self.buffs.retain(|b| std::mem::discriminant(&buff.buff_type) != std::mem::discriminant(&b.buff_type));
+        self.buffs.push(buff);
+    }
+    pub fn get_buff(&self, buff: Buff) -> Option<Buff> {
+        let find = self.buffs.iter().find(|b| std::mem::discriminant(&buff.buff_type) == std::mem::discriminant(&b.buff_type));
+        find.map(|b| b.clone())
+    }
+    pub fn has_buff(&self, buff: Buff) -> bool {
+        self.get_buff(buff).is_some()
     }
 }
 
@@ -112,12 +158,12 @@ impl Plugin for BuffPlugin {
     }
 }
 
-pub fn buff_lifetime_system(mut query: Query<&mut StatusEffects>) {
+pub fn buff_lifetime_system(mut query: Query<&mut Stats>) {
 
     for mut effects in query.iter_mut() {
         
         // remove expired effects
-        effects.retain(|buff| {
+        effects.buffs.retain(|buff| {
 
             if let BuffLifetime::Round = buff.lifetime {
                 return false;
@@ -131,7 +177,7 @@ pub fn buff_lifetime_system(mut query: Query<&mut StatusEffects>) {
         });
 
         // tick down rounds
-        for mut buff in effects.iter_mut() {
+        for mut buff in effects.buffs.iter_mut() {
 
             if let BuffLifetime::Rounds(round) = buff.lifetime {
                 buff.lifetime = BuffLifetime::Rounds(round-1);

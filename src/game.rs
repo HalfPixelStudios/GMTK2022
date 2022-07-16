@@ -3,7 +3,8 @@ use bevy_bobs::prefab::{PrefabId, PrefabLib};
 
 use crate::{
     prefab::{Side, TroopPrefab},
-    troop::{self, DespawnTroopEvent, Dice, SpawnTroopEvent, Stats, Tag, Troop},
+    troop::{self, DespawnTroopEvent, Dice, SpawnTroopEvent, Tag, Troop},
+    buff::Stats
 };
 
 pub struct StartLevelEvent {
