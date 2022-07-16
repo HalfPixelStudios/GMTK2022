@@ -1,3 +1,4 @@
+use GMTK2022::ui::UIPlugin;
 use bevy::prelude::*;
 use GMTK2022::animation::*;
 use GMTK2022::assetloader::*;
@@ -28,11 +29,12 @@ fn main() {
         .add_plugin(AssetLoadPlugin)
         .add_plugin(AnimationPlugin)
         .add_system(setup)
-        .add_system(spawn_devil)
+        // .add_system(spawn_devil)
         .insert_resource(RunOnce { ran: false })
         .add_startup_system(setup);
 
     app.add_plugin(GamePlugin)
+        .add_plugin(UIPlugin)
         .add_plugin(PrefabPlugin)
         .add_plugin(TroopPlugin);
 
