@@ -66,7 +66,6 @@ fn spawn_devil(
                 finished: false,
                 index: -1,
             });
-=======
 fn debug(
     keys: Res<Input<KeyCode>>,
     mut start_round_writer: EventWriter<StartLevelEvent>,
@@ -79,6 +78,5 @@ fn debug(
     if keys.just_pressed(KeyCode::T) {
         info!("pressed: next turn");
         next_turn_writer.send(NextTurnEvent);
->>>>>>> master
     }
 }
