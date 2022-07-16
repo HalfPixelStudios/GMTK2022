@@ -3,13 +3,18 @@ use bevy_bobs::prefab::PrefabId;
 
 use crate::{
     prefab::Side,
-    troop::{Dice, SpawnTroopEvent, Stats, Tag, Troop},
+    troop::{self, DespawnTroopEvent, Dice, SpawnTroopEvent, Stats, Tag, Troop},
 };
 
-pub struct StartLevelEvent;
+pub struct StartLevelEvent {
+    pub level: usize,
+}
 pub struct StartRoundEvent;
 pub struct NextTurnEvent;
 pub struct EndRoundEvent;
+pub struct EndLevelEvent {
+    pub passed: bool, // did player win or lose
+}
 
 pub struct Game {
     pub level: usize,
@@ -17,6 +22,9 @@ pub struct Game {
     pub enemies: Vec<Entity>, // enemy troops
     pub turn_order: Vec<Entity>,
 }
+
+pub struct Party {}
+pub struct Levels {}
 
 impl Game {
     pub fn new() -> Self {
@@ -42,11 +50,15 @@ impl Plugin for GamePlugin {
             .add_event::<StartRoundEvent>()
             .add_event::<NextTurnEvent>()
             .add_event::<EndRoundEvent>()
+            .add_event::<EndLevelEvent>()
             .insert_resource(Game::new())
             .add_startup_system(setup)
             .add_system(start_level)
             .add_system(start_round)
-            .add_system(turn_resolver);
+            .add_system(turn_resolver)
+            .add_system(end_round)
+            .add_system(end_level)
+            .add_system(troop_died_event);
     }
 }
 
@@ -64,8 +76,10 @@ fn setup(mut spawn_troop_writer: EventWriter<SpawnTroopEvent>) {
 }
 
 fn start_level(mut game: ResMut<Game>, mut events: EventReader<StartLevelEvent>) {
-    for _ in events.iter() {
-        game.level += 1;
+    for StartLevelEvent { level } in events.iter() {
+        game.level = *level;
+
+        // repopulate both player and enemy lists
     }
 }
 
@@ -131,6 +145,7 @@ fn turn_resolver(
                 };
 
                 if let Some(target) = enemy_pool.choose(&mut thread_rng()) {
+                    println!("target {:?}", target);
                     let mut target_stat = troop_query
                         .get_component_mut::<Stats>(target.clone())
                         .unwrap();
@@ -140,6 +155,63 @@ fn turn_resolver(
             Side::Ability(ability) => {
                 info!("rolled an ability {}", ability);
             }
+        }
+    }
+}
+
+fn end_round(mut events: EventReader<EndRoundEvent>, mut writer: EventWriter<StartRoundEvent>) {
+    for _ in events.iter() {
+        writer.send(StartRoundEvent);
+    }
+}
+
+fn end_level(
+    game: Res<Game>,
+    mut events: EventReader<EndLevelEvent>,
+    mut writer: EventWriter<StartLevelEvent>,
+) {
+    for EndLevelEvent { passed } in events.iter() {
+        println!("level ended!");
+        if *passed {
+            writer.send(StartLevelEvent {
+                level: game.level + 1,
+            });
+        } else {
+            writer.send(StartLevelEvent { level: game.level });
+        }
+    }
+}
+
+fn troop_died_event(
+    mut cmd: Commands,
+    mut game: ResMut<Game>,
+    mut events: EventReader<DespawnTroopEvent>,
+    mut writer: EventWriter<EndLevelEvent>,
+    troop_query: Query<(Entity, &Tag), With<Troop>>,
+) {
+    for DespawnTroopEvent { entity } in events.iter() {
+        if let Ok(tag) = troop_query.get_component::<Tag>(*entity) {
+            match *tag {
+                Tag::Player => &mut game.party,
+                Tag::Enemy => &mut game.enemies,
+            }
+            .retain(|e| e != entity);
+
+            cmd.entity(*entity).despawn();
+
+            println!(
+                "party left {}, enemies left {}",
+                game.party.len(),
+                game.enemies.len()
+            );
+        }
+
+        // check win or lose condition
+        if game.party.len() == 0 {
+            writer.send(EndLevelEvent { passed: false });
+        }
+        if game.enemies.len() == 0 {
+            writer.send(EndLevelEvent { passed: true });
         }
     }
 }

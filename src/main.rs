@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use GMTK2022::{
     assetloader::*,
-    game::{GamePlugin, NextTurnEvent, StartRoundEvent},
+    game::{GamePlugin, NextTurnEvent, StartLevelEvent, StartRoundEvent},
     prefab::PrefabPlugin,
     troop::TroopPlugin,
 };
@@ -28,12 +28,12 @@ fn setup(mut commands: Commands, sheets: Res<AssetSheets>) {
 
 fn debug(
     keys: Res<Input<KeyCode>>,
-    mut start_round_writer: EventWriter<StartRoundEvent>,
+    mut start_round_writer: EventWriter<StartLevelEvent>,
     mut next_turn_writer: EventWriter<NextTurnEvent>,
 ) {
     if keys.just_pressed(KeyCode::S) {
         info!("pressed: starting round");
-        start_round_writer.send(StartRoundEvent);
+        start_round_writer.send(StartLevelEvent { level: 1 });
     }
     if keys.just_pressed(KeyCode::T) {
         info!("pressed: next turn");

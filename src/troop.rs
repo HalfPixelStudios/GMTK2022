@@ -15,6 +15,9 @@ pub struct SpawnTroopEvent {
     pub tag: Tag,
     pub spawn_pos: Vec2,
 }
+pub struct DespawnTroopEvent {
+    pub entity: Entity,
+}
 
 #[derive(Component)]
 pub struct Troop;
@@ -68,6 +71,11 @@ impl Stats {
     }
     pub fn take_damage(&mut self, amount: u32) {
         // take damange taking defence into account
+        self.health = if amount > self.health {
+            0
+        } else {
+            self.health - amount
+        };
     }
     pub fn is_dead(&self) -> bool {
         self.health == 0
@@ -90,6 +98,7 @@ pub struct TroopPlugin;
 impl Plugin for TroopPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SpawnTroopEvent>()
+            .add_event::<DespawnTroopEvent>()
             .add_system(spawn_troop_system)
             .add_system(despawn_troop_system);
     }
@@ -146,11 +155,14 @@ fn spawn_troop_system(
     }
 }
 
-fn despawn_troop_system(mut cmd: Commands, troop_query: Query<(Entity, &Stats), With<Troop>>) {
+fn despawn_troop_system(
+    mut writer: EventWriter<DespawnTroopEvent>,
+    troop_query: Query<(Entity, &Stats), With<Troop>>,
+) {
     for (e, stats) in troop_query.iter() {
         if stats.is_dead() {
             info!("troop has died!");
-            cmd.entity(e).despawn();
+            writer.send(DespawnTroopEvent { entity: e });
         }
     }
 }

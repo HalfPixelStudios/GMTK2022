@@ -42,7 +42,7 @@ const RON_STRING: &str = r#"
     "warrior": (
         display_name: "warrior",
         stats: (
-            base_health: 100,
+            base_health: 10,
             base_speed: 100,
             base_defence: 10,
         ),
@@ -61,7 +61,7 @@ const RON_STRING: &str = r#"
     "orc": (
         display_name: "orc",
         stats: (
-            base_health: 100,
+            base_health: 5,
             base_speed: 100,
             base_defence: 10,
         ),
