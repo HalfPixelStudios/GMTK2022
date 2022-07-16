@@ -19,4 +19,3 @@ impl Plugin for UIPlugin {
 fn setup(mut cmd: Commands) {
     cmd.spawn_bundle(kayak_ui::bevy::UICameraBundle::new());
 }
-

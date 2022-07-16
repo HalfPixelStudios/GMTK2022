@@ -313,6 +313,7 @@ dependencies = [
 [[package]]
 name = "bevy_bobs"
 version = "0.1.0"
+source = "git+https://github.com/HalfPixelStudios/bevy_bobs#7c60b57be3c0daa9f80f2c57d0eb5dcb56e32751"
 dependencies = [
  "bevy",
  "rand",

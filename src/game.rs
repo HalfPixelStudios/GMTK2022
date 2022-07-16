@@ -1,12 +1,12 @@
 use bevy::prelude::*;
-use bevy_bobs::prefab::{PrefabId, PrefabLib};
 
 use crate::{
-    prefab::{Side, TroopPrefab},
+    assetloader::{Side, TroopPrefab},
     troop::{self, DespawnTroopEvent, Dice, SpawnTroopEvent, Stats, Tag, Troop},
 };
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum GameState {
+    Menu,
     StartLevel,
     StartRound,
     EndRound,
@@ -23,10 +23,10 @@ pub struct Game {
 
 // upgradeable party (reinitialize on every level)
 pub struct Party {
-    troops: Vec<TroopPrefab>,
+    troops: Vec<String>,
 }
 pub struct Level {
-    pub enemies: Vec<PrefabId>,
+    pub enemies: Vec<String>,
     // pub rewards:
 }
 
@@ -49,8 +49,7 @@ pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<NextTurnEvent>()
-            .add_state(GameState::StartLevel);
+        app.add_event::<NextTurnEvent>().add_state(GameState::Menu);
         app.add_system_set(SystemSet::on_enter(GameState::StartLevel).with_system(start_level))
             .add_system_set(SystemSet::on_enter(GameState::StartRound).with_system(start_round))
             .add_system_set(SystemSet::on_update(GameState::StartRound).with_system(turn_resolver))
@@ -63,18 +62,23 @@ impl Plugin for GamePlugin {
     }
 }
 
-fn setup(mut cmd: Commands, prefab_lib: Res<PrefabLib<TroopPrefab>>) {
+fn setup(mut cmd: Commands) {
     cmd.insert_resource(Party {
         troops: vec![
-            prefab_lib.get("warrior").unwrap().clone(),
-            prefab_lib.get("warrior").unwrap().clone(),
-            prefab_lib.get("warrior").unwrap().clone(),
-            prefab_lib.get("warrior").unwrap().clone(),
+            "warrior.troop".into(),
+            "warrior.troop".into(),
+            "warrior.troop".into(),
+            "warrior.troop".into(),
         ],
     });
     cmd.insert_resource(Levels {
         levels: vec![Level {
-            enemies: vec!["orc".into(), "orc".into(), "orc".into(), "orc".into()],
+            enemies: vec![
+                "orc.troop".into(),
+                "orc.troop".into(),
+                "orc.troop".into(),
+                "orc.troop".into(),
+            ],
         }],
     });
 }
@@ -86,6 +90,7 @@ fn start_level(
     game_state: Res<State<GameState>>,
     mut writer: EventWriter<SpawnTroopEvent>,
 ) {
+    info!("hob");
     // repopulate both player and enemy lists
     game.party.clear();
     game.enemies.clear();
@@ -94,7 +99,7 @@ fn start_level(
     // (dont like how the logic is somewhere else)
     for (i, troop) in party_res.troops.iter().enumerate() {
         writer.send(SpawnTroopEvent {
-            spawn_info: troop::SpawnInfo::Prefab(troop.clone()),
+            id: troop.clone(),
             tag: Tag::Player,
             spawn_pos: Vec2::new((i as f32) * 100., 0.),
         });
@@ -103,7 +108,7 @@ fn start_level(
     let level = levels_res.levels.get(game.level).unwrap();
     for (i, enemy) in level.enemies.iter().enumerate() {
         writer.send(SpawnTroopEvent {
-            spawn_info: troop::SpawnInfo::Id(enemy.clone()),
+            id: enemy.clone(),
             tag: Tag::Enemy,
             spawn_pos: Vec2::new((i as f32) * 100., 100.),
         });
@@ -177,6 +182,7 @@ fn turn_resolver(
                     target_stat.take_damage(num);
                 }
             }
+
             Side::Ability(ability) => {
                 info!("rolled an ability {}", ability);
             }

@@ -1,24 +1,43 @@
-use crate::prefab::Side;
-
 use super::animation::*;
+use crate::troop::*;
 use bevy::prelude::*;
 use bevy::reflect::TypeUuid;
 use bevy_asset_ron::*;
 use serde::*;
 use std::collections::HashMap;
 
-#[derive(Deserialize, TypeUuid, Debug)]
-#[uuid = "b7f64775-6e72-4080-9ced-167607f1f0b2"]
-pub struct AnimationAsset {
-    pub anims: HashMap<AniState, Vec2>,
-    pub seconds: i32,
+#[derive(Deserialize, Debug, Clone)]
+pub struct AnimationPrefab {
+    pub frame_ranges: HashMap<AniState, Vec2>,
+    pub seconds: f32,
 }
 
-#[derive(Deserialize, TypeUuid, Debug)]
-#[uuid = "b2943c90-a830-4807-9f8f-5a1c3efe1bd9"]
-pub struct DiceAsset {
-    pub sheet: String,
+#[derive(Deserialize, Debug, Clone)]
+pub struct DicePrefab {
     pub sides: [Side; 6],
+}
+#[derive(Deserialize, Clone)]
+pub struct StatsPrefab {
+    pub base_health: u32,
+    pub base_speed: u32,
+    pub base_defence: u32,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub enum Side {
+    Blank,
+    Number(u32),
+    Ability(String),
+}
+
+#[derive(Deserialize, TypeUuid)]
+#[uuid = "e60395c0-f873-41dc-adfa-42d3ca74b8fc"]
+pub struct TroopPrefab {
+    pub display_name: String,
+    pub stats: StatsPrefab,
+    pub default_dice: DicePrefab,
+    pub anim: AnimationPrefab,
+    pub class: Class,
 }
 
 pub struct AssetSheets(pub HashMap<String, Handle<TextureAtlas>>);
@@ -31,8 +50,7 @@ pub struct AssetLoadPlugin;
 impl Plugin for AssetLoadPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system_to_stage(StartupStage::PreStartup, load_assets)
-            .add_plugin(RonAssetPlugin::<AnimationAsset>::new(&["ani"]))
-            .add_plugin(RonAssetPlugin::<DiceAsset>::new(&["dice"]));
+            .add_plugin(RonAssetPlugin::<TroopPrefab>::new(&["troop"]));
     }
 }
 
@@ -63,9 +81,9 @@ pub fn load_assets(
     cmd.insert_resource(AssetSheets(sheets));
 
     let mut data: HashMap<String, HandleUntyped> = HashMap::new();
-    let red_demon: Handle<AnimationAsset> = assets.load("anis/RedDemon.ani");
-    data.insert("RedDemon.ani".to_string(), red_demon.clone_untyped());
-    let wizard_dice: Handle<DiceAsset> = assets.load("dices/wizard.dice");
-    data.insert("wizard.dice".to_string(), wizard_dice.clone_untyped());
+    let red_demon: Handle<TroopPrefab> = assets.load("troops/orc.troop");
+    data.insert("orc.troop".to_string(), red_demon.clone_untyped());
+    let warrior: Handle<TroopPrefab> = assets.load("troops/war.troop");
+    data.insert("warrior.troop".to_string(), warrior.clone_untyped());
     cmd.insert_resource(PrefabData(data));
 }

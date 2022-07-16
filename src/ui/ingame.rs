@@ -14,11 +14,14 @@ impl Plugin for InGamePlugin {
 }
 
 fn render_ui(mut cmd: Commands) {
-
     let context = BevyContext::new(|context| {
-
         let bg_style = Style {
-            background_color: StyleProp::Value(Color { r: 1., g: 0., b: 0., a: 1. }),
+            background_color: StyleProp::Value(Color {
+                r: 1.,
+                g: 0.,
+                b: 0.,
+                a: 1.,
+            }),
             width: StyleProp::Value(Units::Pixels(100.)),
             height: StyleProp::Value(Units::Pixels(100.)),
             ..Default::default()

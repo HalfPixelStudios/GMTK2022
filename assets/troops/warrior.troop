@@ -1,0 +1,28 @@
+TroopPrefab(
+    display_name: "warrior",
+    stats: (
+        base_health: 10,
+        base_speed: 120,
+        base_defence: 10
+    ),
+    default_dice: (
+        sides: (
+            Blank,
+            Number(2),
+            Number(3),
+            Number(4),
+            Number(5),
+            Ability("stun")
+        )
+    ),
+    anim: (
+        frame_ranges: {
+            Idle: (627,631),
+            Attack: (840,844)
+        },
+        seconds: 2
+    ),
+    class: Warrior
+
+)
+
