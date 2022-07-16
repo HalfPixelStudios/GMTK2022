@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::game::StartRoundEvent;
+
 #[derive(Clone)]
 pub enum BuffType {
 
@@ -120,6 +122,10 @@ impl Stats {
             self.health - amount
         };
     }
+    pub fn heal(&mut self, amount: u32) {
+        // TODO max health
+        self.health += amount;
+    }
     pub fn is_dead(&self) -> bool {
         self.health == 0
     }
@@ -158,7 +164,7 @@ impl Plugin for BuffPlugin {
     }
 }
 
-pub fn buff_lifetime_system(mut query: Query<&mut Stats>) {
+fn buff_lifetime_system(mut query: Query<&mut Stats>) {
 
     for mut effects in query.iter_mut() {
         
@@ -186,4 +192,28 @@ pub fn buff_lifetime_system(mut query: Query<&mut Stats>) {
         }
 
     }
+}
+
+fn apply_start_round_buffs(mut events: EventReader<StartRoundEvent>, mut query: Query<(Entity, &mut Stats)>) {
+
+    for _ in events.iter() {
+
+        for (entity, mut stat) in query.iter_mut() {
+            
+            for buff in stat.buffs.iter() {
+                
+                /*
+                match buff.buff_type {
+                    BuffType::Regeneration { amount } => { stat.heal(amount as u32) },
+                    BuffType::Burning { amount } => {},
+                    BuffType::Poison { amount } => {},
+                    _ => {}
+                }
+                */
+
+            }
+
+        }
+    }
+
 }
