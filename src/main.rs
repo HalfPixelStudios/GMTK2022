@@ -90,7 +90,7 @@ fn debug(
     if keys.just_pressed(KeyCode::A) {
         info!("sent");
         roll_dice.send(RollDiceEvent {
-            id: "wizard.dice".to_string(),
+            id: "warrior.troop".to_string(),
         })
     }
 

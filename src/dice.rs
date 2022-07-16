@@ -11,12 +11,12 @@ impl Plugin for DicePlugin {
     }
 }
 #[derive(Component)]
-struct DiceRoll {
+struct DiceUI {
     rolls: i32,
     left: i32,
     timer: Timer,
 }
-impl DiceRoll {
+impl DiceUI {
     pub fn reset(&mut self) {
         self.left = self.rolls;
     }
@@ -30,13 +30,16 @@ fn spawn_dice(
     sheets: Res<AssetSheets>,
     mut events: EventReader<RollDiceEvent>,
     troop_data: Res<PrefabData>,
-    troops: Res<Assets<TroopPrefab>>,
+    mut troops: Res<Assets<TroopPrefab>>,
 ) {
     for e in events.iter() {
-        let dice = &troops
+        info!("{:?}", e.id);
+
+        let dice = troops
             .get(troop_data.0.get(&e.id).unwrap())
             .unwrap()
-            .default_dice;
+            .default_dice
+            .clone();
 
         cmd.spawn_bundle(SpriteSheetBundle {
             sprite: TextureAtlasSprite {
@@ -47,7 +50,7 @@ fn spawn_dice(
             transform: Transform::from_scale(Vec3::splat(6.0)),
             ..default()
         })
-        .insert(DiceRoll {
+        .insert(DiceUI {
             rolls: 5,
             left: 5,
             timer: Timer::from_seconds(0.1, true),
@@ -56,7 +59,7 @@ fn spawn_dice(
 }
 fn roll_dice(
     mut cmd: Commands,
-    mut dice_query: Query<(Entity, &mut DiceRoll, &mut TextureAtlasSprite)>,
+    mut dice_query: Query<(Entity, &mut DiceUI, &mut TextureAtlasSprite)>,
     time: Res<Time>,
 ) {
     for (entity, mut d, mut sprite) in dice_query.iter_mut() {

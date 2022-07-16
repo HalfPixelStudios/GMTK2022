@@ -90,7 +90,6 @@ fn start_level(
     game_state: Res<State<GameState>>,
     mut writer: EventWriter<SpawnTroopEvent>,
 ) {
-    info!("hob");
     // repopulate both player and enemy lists
     game.party.clear();
     game.enemies.clear();
