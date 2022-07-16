@@ -1,7 +1,6 @@
 use bevy::prelude::*;
-use bevy_bobs::prefab::PrefabId;
 
-use crate::assetloader::{AssetSheets, DiceAsset, PrefabData};
+use crate::assetloader::{AssetSheets, DicePrefab, PrefabData, TroopPrefab};
 
 pub struct DicePlugin;
 impl Plugin for DicePlugin {
@@ -30,20 +29,21 @@ fn spawn_dice(
     mut cmd: Commands,
     sheets: Res<AssetSheets>,
     mut events: EventReader<RollDiceEvent>,
-    dice_data: Res<PrefabData>,
-    dices: Res<Assets<DiceAsset>>,
+    troop_data: Res<PrefabData>,
+    troops: Res<Assets<TroopPrefab>>,
 ) {
     for e in events.iter() {
-        info!("{:?}", dices.get(dice_data.0.get(&e.id).unwrap()));
-
-        let data = dices.get(dice_data.0.get(&e.id).unwrap()).unwrap();
+        let dice = &troops
+            .get(troop_data.0.get(&e.id).unwrap())
+            .unwrap()
+            .default_dice;
 
         cmd.spawn_bundle(SpriteSheetBundle {
             sprite: TextureAtlasSprite {
                 index: 0,
                 ..default()
             },
-            texture_atlas: sheets.0.get(&data.sheet).unwrap().clone(),
+            texture_atlas: sheets.0.get("dice").unwrap().clone(),
             transform: Transform::from_scale(Vec3::splat(6.0)),
             ..default()
         })

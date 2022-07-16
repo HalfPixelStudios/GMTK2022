@@ -17,7 +17,7 @@ impl Layers {
 #[derive(Eq, PartialEq, Hash)]
 pub enum LayerName {
     Ground,
-    Troop
+    Troop,
 }
 
 pub struct LayerData {

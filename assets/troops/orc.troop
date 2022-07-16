@@ -1,0 +1,30 @@
+TroopPrefab(
+    display_name: "orc",
+    stats: (
+        base_health: 5,
+        base_speed: 100,
+        base_defence: 10
+    ),
+    default_dice: (
+        sides: (
+            Number(2),
+            Number(2),
+            Number(3),
+            Number(4),
+            Number(5),
+            Number(2)
+        )
+    ),
+    anim: (
+        frame_ranges: {
+            Idle: (627,631),
+            Attack: (840,844)
+        },
+        seconds: 2
+    ),
+    class: Warrior
+
+)
+
+
+

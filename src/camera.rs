@@ -15,7 +15,7 @@ impl Plugin for CameraPlugin {
         app.add_startup_system(setup)
             .insert_resource(Cursor(Vec2::ZERO))
             .add_system(cursor_system);
-            // .add_system(camera_controller);
+        // .add_system(camera_controller);
     }
 }
 

@@ -20,4 +20,3 @@ fn setup(mut cmd: Commands, mut font_mapping: ResMut<FontMapping>, asset_server:
     cmd.spawn_bundle(kayak_ui::bevy::UICameraBundle::new());
     font_mapping.set_default(asset_server.load("fonts/roboto.kayak_font"));
 }
-

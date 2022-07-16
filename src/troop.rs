@@ -1,21 +1,15 @@
 use bevy::prelude::*;
-use bevy_bobs::{
-    component::health::Health,
-    prefab::{PrefabId, PrefabLib},
-};
+use bevy_bobs::component::health::Health;
+use serde::Deserialize;
 
 use crate::{
-    assetloader::AssetSheets,
+    animation::*,
+    assetloader::{AssetSheets, PrefabData, Side, TroopPrefab},
     game::Game,
-    prefab::{DicePrefab, Side, TroopPrefab},
 };
 
-pub enum SpawnInfo {
-    Id(PrefabId),
-    Prefab(TroopPrefab),
-}
 pub struct SpawnTroopEvent {
-    pub spawn_info: SpawnInfo,
+    pub id: String,
     pub tag: Tag,
     pub spawn_pos: Vec2,
 }
@@ -27,11 +21,17 @@ pub struct DespawnTroopEvent {
 pub struct Troop;
 
 #[derive(Component)]
-pub struct Stats {
-    health: u32,
-    speed: u32,
-    defence: u32,
-    // buffs: Vec<>
+pub enum Tag {
+    Player,
+    Enemy,
+}
+
+#[derive(Deserialize, Clone)]
+pub enum Class {
+    Warrior,
+    Wizard,
+    Archer,
+    Cleric,
 }
 
 #[derive(Component)]
@@ -39,17 +39,11 @@ pub struct Dice {
     pub sides: [Side; 6],
 }
 
-#[derive(Component)]
-pub enum Tag {
-    Player,
-    Enemy,
-}
-
 impl Dice {
     pub fn roll(&self) -> Side {
         use rand::{thread_rng, Rng};
 
-        let face = thread_rng().gen_range(0..6);
+        let face: usize = thread_rng().gen_range(0..6);
         self.sides[face].clone()
     }
 
@@ -59,6 +53,13 @@ impl Dice {
     }
 
     pub fn modify_number(&mut self, index: usize, modify: i32) {}
+}
+#[derive(Component)]
+pub struct Stats {
+    health: u32,
+    speed: u32,
+    defence: u32,
+    // buffs: Vec<>
 }
 
 impl Stats {
@@ -112,26 +113,20 @@ fn spawn_troop_system(
     mut cmd: Commands,
     mut game: ResMut<Game>, // kind ugly to use this here
     mut events: EventReader<SpawnTroopEvent>,
-    prefab_lib: Res<PrefabLib<TroopPrefab>>,
+    troop_data: Res<PrefabData>,
     asset_sheet: Res<AssetSheets>,
+    troops: Res<Assets<TroopPrefab>>,
 ) {
-    for SpawnTroopEvent {
-        spawn_info,
-        tag,
-        spawn_pos,
-    } in events.iter()
-    {
-        let prefab = match spawn_info.clone() {
-            SpawnInfo::Id(id) => prefab_lib.get(&id).unwrap(),
-            SpawnInfo::Prefab(prefab) => &prefab,
-        };
+    for SpawnTroopEvent { id, tag, spawn_pos } in events.iter() {
+        info!(id);
+        let prefab = troops.get(troop_data.0.get(id).unwrap()).unwrap();
 
         let e = cmd.spawn().id();
         cmd.entity(e)
             .insert(Troop)
             .insert_bundle(SpriteSheetBundle {
                 sprite: TextureAtlasSprite {
-                    index: prefab.sprite_index,
+                    index: prefab.anim.frame_ranges.get(&AniState::Idle).unwrap().y as usize,
                     ..default()
                 },
                 texture_atlas: asset_sheet.0.get("assets").unwrap().clone(),
@@ -153,6 +148,13 @@ fn spawn_troop_system(
             .insert(match tag {
                 Tag::Player => Tag::Player,
                 Tag::Enemy => Tag::Enemy,
+            })
+            .insert(Animation {
+                timer: Timer::from_seconds(prefab.anim.seconds, true),
+                state: AniState::Idle,
+                data: prefab.anim.frame_ranges.clone(),
+                finished: false,
+                index: -1,
             });
 
         // add newly spawned troop to game ref

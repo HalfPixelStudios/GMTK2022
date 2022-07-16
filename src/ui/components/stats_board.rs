@@ -1,7 +1,10 @@
-use bevy::{prelude::{World, AssetServer}, math::Vec2};
+use bevy::{
+    math::Vec2,
+    prelude::{AssetServer, World},
+};
 use kayak_ui::{
     bevy::*,
-    core::{styles::*, widget, rsx, Color, WidgetProps},
+    core::{rsx, styles::*, widget, Color, WidgetProps},
     widgets::*,
 };
 
@@ -17,19 +20,25 @@ pub struct StatsBoardProps {
 
 #[widget]
 pub fn StatsBoard(props: StatsBoardProps) {
-
     let (heart_handle, speed_handle, defence_handle) = {
         let mut world = context.get_global_mut::<World>().unwrap();
-        
 
-        let (heart_handle, speed_handle, defence_handle) = { 
+        let (heart_handle, speed_handle, defence_handle) = {
             let asset_server = world.get_resource::<AssetServer>().unwrap();
-            (asset_server.load("ui/heart.png"), asset_server.load("ui/speed.png"), asset_server.load("ui/shield.png"))
+            (
+                asset_server.load("ui/heart.png"),
+                asset_server.load("ui/speed.png"),
+                asset_server.load("ui/shield.png"),
+            )
         };
 
         let mut image_manager = world.get_resource_mut::<ImageManager>().unwrap();
 
-        (image_manager.get(&heart_handle), image_manager.get(&speed_handle), image_manager.get(&defence_handle))
+        (
+            image_manager.get(&heart_handle),
+            image_manager.get(&speed_handle),
+            image_manager.get(&defence_handle),
+        )
     };
 
     let troop_name = props.troop_name.clone();
@@ -54,12 +63,12 @@ pub fn StatsBoard(props: StatsBoardProps) {
     let stat_container_style = Style {
         layout_type: StyleProp::Value(LayoutType::Row),
         // col_between: StyleProp::Value(Units::Pixels(image_padding)),
-        ..Style::default()   
+        ..Style::default()
     };
     let hp_bar_style = Style {
         left: StyleProp::Value(Units::Pixels(10.)),
         top: StyleProp::Value(Units::Pixels(17.)),
-        ..Style::default()   
+        ..Style::default()
     };
 
     rsx! {

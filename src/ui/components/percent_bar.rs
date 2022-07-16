@@ -1,6 +1,6 @@
 use kayak_ui::{
     bevy::*,
-    core::{styles::*, widget, rsx, Color, WidgetProps},
+    core::{rsx, styles::*, widget, Color, WidgetProps},
     widgets::*,
 };
 
@@ -19,30 +19,39 @@ impl Default for PercentBarProps {
             percent: 1.,
             width: 100.,
             height: 10.,
-            styles: Some(Style::default())
+            styles: Some(Style::default()),
         }
     }
 }
 
 #[widget]
 pub fn PercentBar(props: PercentBarProps) {
-
     let bar_percent = props.percent.clamp(0., 1.);
 
     let fg_style = Style {
-        background_color: StyleProp::Value(Color { r: 1., g: 0., b: 0., a: 1. }),
+        background_color: StyleProp::Value(Color {
+            r: 1.,
+            g: 0.,
+            b: 0.,
+            a: 1.,
+        }),
         width: StyleProp::Value(Units::Pixels(props.width * bar_percent)),
         height: StyleProp::Value(Units::Pixels(props.height)),
         ..Default::default()
     };
 
     let bg_style = Style {
-        background_color: StyleProp::Value(Color { r: 0., g: 0., b: 0., a: 1. }),
+        background_color: StyleProp::Value(Color {
+            r: 0.,
+            g: 0.,
+            b: 0.,
+            a: 1.,
+        }),
         width: StyleProp::Value(Units::Pixels(props.width * (1. - bar_percent))),
         height: StyleProp::Value(Units::Pixels(props.height)),
         ..Default::default()
     };
-    
+
     let container_style = Style {
         layout_type: StyleProp::Value(LayoutType::Row),
         ..Default::default()
@@ -56,4 +65,3 @@ pub fn PercentBar(props: PercentBarProps) {
         </Element>
     }
 }
-
