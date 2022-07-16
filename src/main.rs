@@ -4,12 +4,10 @@ use GMTK2022::animation::*;
 use GMTK2022::assetloader::*;
 use GMTK2022::dice::DicePlugin;
 use GMTK2022::dice::RollDiceEvent;
-use GMTK2022::{
-    assetloader::*,
-    game::{GamePlugin, NextTurnEvent, StartLevelEvent, StartRoundEvent},
-    prefab::PrefabPlugin,
-    troop::TroopPlugin,
-};
+use GMTK2022::game::Game;
+use GMTK2022::game::GameState;
+use GMTK2022::game::NextTurnEvent;
+use GMTK2022::{assetloader::*, game::GamePlugin, prefab::PrefabPlugin, troop::TroopPlugin};
 
 pub struct RunOnce {
     ran: bool,
@@ -84,9 +82,10 @@ fn spawn_devil(
 }
 fn debug(
     keys: Res<Input<KeyCode>>,
-    mut start_round_writer: EventWriter<StartLevelEvent>,
-    mut next_turn_writer: EventWriter<NextTurnEvent>,
     mut roll_dice: EventWriter<RollDiceEvent>,
+    mut game_state: ResMut<State<GameState>>,
+    mut game: ResMut<Game>,
+    mut next_turn: EventWriter<NextTurnEvent>,
 ) {
     if keys.just_pressed(KeyCode::A) {
         info!("sent");
@@ -95,12 +94,16 @@ fn debug(
         })
     }
 
-    // if keys.just_pressed(KeyCode::S) {
-    //     info!("pressed: starting round");
-    //     start_round_writer.send(StartLevelEvent { level: 0 });
-    // }
-    // if keys.just_pressed(KeyCode::T) {
-    //     info!("pressed: next turn");
-    //     next_turn_writer.send(NextTurnEvent);
-    // }
+    if keys.just_pressed(KeyCode::S) {
+        info!("pressed: starting round");
+        game_state.set(GameState::StartLevel).unwrap();
+        game.level = 0;
+    }
+    if keys.just_pressed(KeyCode::T) {
+        info!("hoo");
+        game_state.set(GameState::StartRound).unwrap();
+    }
+    if keys.just_pressed(KeyCode::Q) {
+        next_turn.send(NextTurnEvent);
+    }
 }

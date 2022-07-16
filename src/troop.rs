@@ -134,7 +134,7 @@ fn spawn_troop_system(
                     index: prefab.sprite_index,
                     ..default()
                 },
-                texture_atlas: asset_sheet.0.get("AllAssetsPreview.png").unwrap().clone(),
+                texture_atlas: asset_sheet.0.get("assets").unwrap().clone(),
                 transform: Transform {
                     translation: spawn_pos.extend(0.),
                     ..default()
