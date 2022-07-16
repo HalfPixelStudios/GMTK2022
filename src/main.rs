@@ -13,7 +13,17 @@ pub struct RunOnce {
     ran: bool,
 }
 fn main() {
+    let window_descriptor = WindowDescriptor {
+        present_mode: bevy::window::PresentMode::Fifo,
+        title: "bevy_test".into(),
+        ..default()
+    };
+
     let mut app = App::new();
+
+    app.insert_resource(ClearColor(Color::rgb(0.5, 0.5, 0.5)))
+        .insert_resource(window_descriptor);
+    // .add_system(bevy::input::system::exit_on_esc_system)
 
     app.add_plugins(DefaultPlugins)
         .add_plugin(AssetLoadPlugin)
