@@ -25,7 +25,7 @@ pub struct TroopPrefab {
     pub sprite_index: usize,
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone)]
 pub enum Side {
     Blank,
     Number(u32),

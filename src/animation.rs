@@ -33,7 +33,6 @@ impl Plugin for AnimationPlugin {
 
 pub fn animate(time: Res<Time>, mut animations: Query<(&mut Animation, &mut TextureAtlasSprite)>) {
     for (mut ani, mut sprite) in animations.iter_mut() {
-        info!("{:?}", ani.data);
         let ani_range = ani.data.get(&ani.state).unwrap().clone();
 
         if ani.index == -1 {

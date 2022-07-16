@@ -1,3 +1,5 @@
+use crate::prefab::Side;
+
 use super::animation::*;
 use bevy::prelude::*;
 use bevy::reflect::TypeUuid;
@@ -12,16 +14,26 @@ pub struct AnimationAsset {
     pub seconds: i32,
 }
 
+#[derive(Deserialize, TypeUuid, Debug)]
+#[uuid = "b2943c90-a830-4807-9f8f-5a1c3efe1bd9"]
+pub struct DiceAsset {
+    pub sheet: String,
+    pub sides: [Side; 6],
+    pub frames: [i32; 6],
+}
+
 pub struct AssetSheets(pub HashMap<String, Handle<TextureAtlas>>);
+
 #[derive(Debug)]
-pub struct AnimationData(pub HashMap<String, Handle<AnimationAsset>>);
+pub struct PrefabData(pub HashMap<String, HandleUntyped>);
 
 pub struct AssetLoadPlugin;
 
 impl Plugin for AssetLoadPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system_to_stage(StartupStage::PreStartup, load_assets)
-            .add_plugin(RonAssetPlugin::<AnimationAsset>::new(&["ani"]));
+            .add_plugin(RonAssetPlugin::<AnimationAsset>::new(&["ani"]))
+            .add_plugin(RonAssetPlugin::<DiceAsset>::new(&["dice"]));
     }
 }
 
@@ -32,20 +44,27 @@ pub fn load_assets(
 ) {
     let mut sheets = HashMap::new();
 
-    let image: Handle<Image> = assets.load("AllAssetsPreview.png");
-
-    let atlas = TextureAtlas::from_grid_with_padding(
-        image,
+    let assets_handle = texture_atlases.add(TextureAtlas::from_grid_with_padding(
+        assets.load("AllAssetsPreview.png"),
         Vec2::new(16.0, 16.0),
         71,
         19,
         Vec2::splat(0.0),
-    );
-    let atlas_handle = texture_atlases.add(atlas);
-    sheets.insert("AllAssetsPreview.png".to_string(), atlas_handle);
+    ));
+    let dice_handle = texture_atlases.add(TextureAtlas::from_grid_with_padding(
+        assets.load("diceRed.png"),
+        Vec2::new(64., 64.),
+        4,
+        2,
+        Vec2::splat(0.0),
+    ));
+    sheets.insert("assets".to_string(), assets_handle);
+    sheets.insert("dice".to_string(), dice_handle);
 
     cmd.insert_resource(AssetSheets(sheets));
-    let mut ani_data: HashMap<String, Handle<AnimationAsset>> = HashMap::new();
-    ani_data.insert("RedDemon".to_string(), assets.load("anis/RedDemon.ani"));
-    cmd.insert_resource(AnimationData(ani_data));
+
+    let mut ani_data: HashMap<String, HandleUntyped> = HashMap::new();
+    let red_demon: Handle<AnimationAsset> = assets.load("anis/RedDemon.ani");
+    ani_data.insert("RedDemon.ani".to_string(), red_demon.clone_untyped());
+    cmd.insert_resource(PrefabData(ani_data));
 }

@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use GMTK2022::animation::*;
 use GMTK2022::assetloader::*;
+use GMTK2022::dice::DicePlugin;
 use GMTK2022::{
     assetloader::*,
     game::{GamePlugin, NextTurnEvent, StartLevelEvent, StartRoundEvent},
@@ -20,7 +21,8 @@ fn main() {
         .add_system(setup)
         .add_system(spawn_devil)
         .insert_resource(RunOnce { ran: false })
-        .add_startup_system(setup);
+        .add_startup_system(setup)
+        .add_plugin(DicePlugin);
 
     app.add_plugin(GamePlugin)
         .add_plugin(PrefabPlugin)
@@ -37,7 +39,7 @@ fn setup(mut commands: Commands, sheets: Res<AssetSheets>) {
 fn spawn_devil(
     mut commands: Commands,
     sheets: Res<AssetSheets>,
-    ani_data: Res<AnimationData>,
+    ani_data: Res<PrefabData>,
     animations: Res<Assets<AnimationAsset>>,
     mut ro: ResMut<RunOnce>,
 ) {
@@ -45,18 +47,17 @@ fn spawn_devil(
         return;
     }
 
-    if let Some(a) = animations.get(ani_data.0.get(&"RedDemon".to_string()).unwrap()) {
+    if let Some(a) = animations.get(ani_data.0.get(&"RedDemon.ani".to_string()).unwrap()) {
         ro.ran = true;
 
         commands
             .spawn_bundle(SpriteSheetBundle {
-                sprite: TextureAtlasSprite { ..default() },
+                sprite: TextureAtlasSprite {
+                    index: a.anims.get(&AniState::Idle).unwrap().y as usize,
+                    ..default()
+                },
                 transform: Transform::from_scale(Vec3::splat(6.0)),
-                texture_atlas: sheets
-                    .0
-                    .get(&"AllAssetsPreview.png".to_string())
-                    .unwrap()
-                    .clone(),
+                texture_atlas: sheets.0.get(&"assets".to_string()).unwrap().clone(),
                 ..default()
             })
             .insert(Animation {
@@ -66,17 +67,19 @@ fn spawn_devil(
                 finished: false,
                 index: -1,
             });
+    }
+}
 fn debug(
     keys: Res<Input<KeyCode>>,
     mut start_round_writer: EventWriter<StartLevelEvent>,
     mut next_turn_writer: EventWriter<NextTurnEvent>,
 ) {
-    if keys.just_pressed(KeyCode::S) {
-        info!("pressed: starting round");
-        start_round_writer.send(StartLevelEvent { level: 0 });
-    }
-    if keys.just_pressed(KeyCode::T) {
-        info!("pressed: next turn");
-        next_turn_writer.send(NextTurnEvent);
-    }
+    // if keys.just_pressed(KeyCode::S) {
+    //     info!("pressed: starting round");
+    //     start_round_writer.send(StartLevelEvent { level: 0 });
+    // }
+    // if keys.just_pressed(KeyCode::T) {
+    //     info!("pressed: next turn");
+    //     next_turn_writer.send(NextTurnEvent);
+    // }
 }
