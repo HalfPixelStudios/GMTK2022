@@ -5,7 +5,7 @@ use kayak_ui::{
     widgets::*,
 };
 
-use super::components::health_bar::HealthBar;
+use super::components::stats_board::StatsBoard;
 
 pub struct InGamePlugin;
 
@@ -18,10 +18,9 @@ impl Plugin for InGamePlugin {
 fn render_ui(mut cmd: Commands) {
 
     let context = BevyContext::new(|context| {
-
         render! {
             <kayak_ui::widgets::App>
-                <HealthBar percent={0.5}></HealthBar>
+                <StatsBoard troop_name={"warrior".into()} health_percent={0.75} speed={10} defence={20}></StatsBoard>
             </kayak_ui::widgets::App>
         }
     });

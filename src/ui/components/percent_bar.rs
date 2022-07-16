@@ -5,15 +5,15 @@ use kayak_ui::{
 };
 
 #[derive(WidgetProps, Debug, PartialEq, Clone)]
-pub struct HealthBarProps {
+pub struct PercentBarProps {
     pub percent: f32,
     pub width: f32,
     pub height: f32,
 }
 
-impl Default for HealthBarProps {
+impl Default for PercentBarProps {
     fn default() -> Self {
-        HealthBarProps {
+        PercentBarProps {
             percent: 1.,
             width: 100.,
             height: 10.,
@@ -22,7 +22,7 @@ impl Default for HealthBarProps {
 }
 
 #[widget]
-pub fn HealthBar(props: HealthBarProps) {
+pub fn PercentBar(props: PercentBarProps) {
 
     let bar_percent = props.percent.clamp(0., 1.);
 
@@ -52,3 +52,4 @@ pub fn HealthBar(props: HealthBarProps) {
         </Element>
     }
 }
+
