@@ -1,3 +1,4 @@
+use GMTK2022::ui::UIPlugin;
 use bevy::prelude::*;
 use GMTK2022::animation::*;
 use GMTK2022::assetloader::*;
@@ -36,6 +37,7 @@ fn main() {
         .add_plugin(DicePlugin);
 
     app.add_plugin(GamePlugin)
+        .add_plugin(UIPlugin)
         .add_plugin(PrefabPlugin)
         .add_plugin(TroopPlugin);
 
