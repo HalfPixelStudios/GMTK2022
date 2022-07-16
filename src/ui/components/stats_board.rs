@@ -43,49 +43,73 @@ pub fn StatsBoard(props: StatsBoardProps) {
 
     let troop_name = props.troop_name.clone();
 
-    let image_dimensions = Vec2::new(16., 16.);
-
     let container_style = Style {
         layout_type: StyleProp::Value(LayoutType::Column),
         height: StyleProp::Value(Units::Pixels(200.)),
         ..Style::default()
     };
 
-    let text_style = Style {
-        line_height: StyleProp::Value(image_dimensions.x),
-        ..Style::default()
-    };
-    let image_style = Style {
-        width: StyleProp::Value(Units::Pixels(image_dimensions.x)),
-        height: StyleProp::Value(Units::Pixels(image_dimensions.y)),
-        ..Style::default()
-    };
-    let stat_container_style = Style {
+    let alpha = 0.5;
+    let health_bar_box = Style {
+        background_color: StyleProp::Value(Color { r: 0., g: 1., b: 0., a: alpha }),
+        max_width: StyleProp::Value(Units::Pixels(100.)),
+        max_height: StyleProp::Value(Units::Pixels(20.)),
         layout_type: StyleProp::Value(LayoutType::Row),
+        ..Style::default()
+    };
+    let speed_box= Style {
+        background_color: StyleProp::Value(Color { r: 0., g: 1., b: 1., a: alpha }),
+        max_width: StyleProp::Value(Units::Pixels(100.)),
+        max_height: StyleProp::Value(Units::Pixels(20.)),
+        layout_type: StyleProp::Value(LayoutType::Row),
+        ..Style::default()
+    };
+    let defence_box= Style {
+        background_color: StyleProp::Value(Color { r: 1., g: 1., b: 0., a: alpha }),
+        max_width: StyleProp::Value(Units::Pixels(100.)),
+        max_height: StyleProp::Value(Units::Pixels(20.)),
+        layout_type: StyleProp::Value(LayoutType::Row),
+<<<<<<< Updated upstream
         // col_between: StyleProp::Value(Units::Pixels(image_padding)),
         ..Style::default()
     };
     let hp_bar_style = Style {
         left: StyleProp::Value(Units::Pixels(10.)),
         top: StyleProp::Value(Units::Pixels(17.)),
+=======
+        ..Style::default()
+    };
+
+    let image_style = Style {
+        width: StyleProp::Value(Units::Pixels(16.)),
+        height: StyleProp::Value(Units::Pixels(16.)),
+        ..Style::default()
+    };
+    let health_bar_style = Style {
+        top: StyleProp::Value(Units::Pixels(5.)),
+>>>>>>> Stashed changes
         ..Style::default()
     };
 
     rsx! {
         <Element styles={Some(container_style)}>
-            <Text content={troop_name} styles={Some(text_style)}></Text>
-            <Element styles={Some(stat_container_style.clone())}>
+            <Text content={troop_name}></Text>
+            <Background styles={Some(health_bar_box)}>
                 <Image handle={heart_handle} styles={Some(image_style)}></Image>
-                <PercentBar percent={props.health_percent} styles={Some(hp_bar_style)}></PercentBar>
-            </Element>
-            <Element styles={Some(stat_container_style.clone())}>
+                <PercentBar percent={props.health_percent} styles={Some(health_bar_style)}></PercentBar>
+            </Background>
+            <Background styles={Some(speed_box)}>
                 <Image handle={speed_handle} styles={Some(image_style)}></Image>
-                <Text styles={Some(text_style)} content={format!("{}", props.speed)}></Text>
-            </Element>
-            <Element styles={Some(stat_container_style.clone())}>
+                <Text content={format!("{}", props.speed)}></Text>
+            </Background>
+            <Background styles={Some(defence_box)}>
                 <Image handle={defence_handle} styles={Some(image_style)}></Image>
-                <Text styles={Some(text_style)} content={format!("{}", props.defence)}></Text>
-            </Element>
+                <Text content={format!("{}", props.defence)}></Text>
+            </Background>
+                // <Image handle={heart_handle} styles={Some(image_style)}></Image>
+                // <Text styles={Some(text_style)} content={format!("{}", props.speed)}></Text>
+                // <Image handle={defence_handle} styles={Some(image_style)}></Image>
+                // <Text  styles={Some(text_style)} content={format!("{}", props.defence)}></Text>
         </Element>
     }
 }
