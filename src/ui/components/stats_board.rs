@@ -69,14 +69,6 @@ pub fn StatsBoard(props: StatsBoardProps) {
         max_width: StyleProp::Value(Units::Pixels(100.)),
         max_height: StyleProp::Value(Units::Pixels(20.)),
         layout_type: StyleProp::Value(LayoutType::Row),
-<<<<<<< Updated upstream
-        // col_between: StyleProp::Value(Units::Pixels(image_padding)),
-        ..Style::default()
-    };
-    let hp_bar_style = Style {
-        left: StyleProp::Value(Units::Pixels(10.)),
-        top: StyleProp::Value(Units::Pixels(17.)),
-=======
         ..Style::default()
     };
 
@@ -87,7 +79,6 @@ pub fn StatsBoard(props: StatsBoardProps) {
     };
     let health_bar_style = Style {
         top: StyleProp::Value(Units::Pixels(5.)),
->>>>>>> Stashed changes
         ..Style::default()
     };
 
