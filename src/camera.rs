@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::game::{Game, Levels};
 
 #[derive(Debug, Component)]
-struct MainCamera;
+pub struct MainCamera;
 
 #[derive(Component)]
 pub struct CameraFollow;
@@ -55,16 +55,11 @@ fn cursor_system(
 fn camera_controller(
     mut game: ResMut<Game>,
     mut levels: ResMut<Levels>,
-    mut camera_query: Query<
-        (&mut Camera, &mut GlobalTransform),
-        (With<MainCamera>, Without<CameraFollow>),
-    >,
+    mut camera_query: Query<(&mut Camera, &mut Transform), (With<MainCamera>)>,
 ) {
     let (mut camera, mut cam_transform) = camera_query.single_mut();
     let level = levels.levels.get(game.level).unwrap();
-    if (level.room_center - cam_transform.translation.y).abs() > 50. {
-        info!("heihe");
-
+    if (level.room_center - cam_transform.translation.y).abs() > 70. {
         cam_transform.translation.y +=
             (level.room_center - cam_transform.translation.y).signum() * 0.8;
     } else {
