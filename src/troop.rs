@@ -27,11 +27,17 @@ pub enum Tag {
 }
 
 #[derive(Deserialize, Clone)]
-pub enum Class {
+pub enum DiceTheme {
     Warrior,
-    Wizard,
-    Archer,
     Cleric,
+    Archer,
+    Mage,
+
+    GreenSlime,
+    BlueSlime,
+    Orc,
+    Crab,
+    Skeleton,
 }
 
 #[derive(Component)]
