@@ -3,7 +3,6 @@ use GMTK2022::animation::*;
 use GMTK2022::assetloader::*;
 use GMTK2022::camera::CameraPlugin;
 use GMTK2022::dice::DicePlugin;
-use GMTK2022::dice::RollDiceEvent;
 use GMTK2022::game::Game;
 use GMTK2022::game::GameState;
 use GMTK2022::game::NextTurnEvent;
@@ -82,18 +81,10 @@ fn main() {
 // }
 fn debug(
     keys: Res<Input<KeyCode>>,
-    mut roll_dice: EventWriter<RollDiceEvent>,
     mut game_state: ResMut<State<GameState>>,
     mut game: ResMut<Game>,
     mut next_turn: EventWriter<NextTurnEvent>,
 ) {
-    if keys.just_pressed(KeyCode::A) {
-        info!("sent");
-        roll_dice.send(RollDiceEvent {
-            id: "warrior.troop".to_string(),
-        })
-    }
-
     if keys.just_pressed(KeyCode::S) {
         info!("pressed: starting round");
         game_state.set(GameState::StartLevel).unwrap();

@@ -52,17 +52,32 @@ pub fn StatsBoard(props: StatsBoardProps) {
 
     let alpha = 0.5;
     let health_bar_box = Style {
-        background_color: StyleProp::Value(Color { r: 0., g: 1., b: 0., a: alpha }),
+        background_color: StyleProp::Value(Color {
+            r: 0.,
+            g: 1.,
+            b: 0.,
+            a: alpha,
+        }),
         layout_type: StyleProp::Value(LayoutType::Row),
         ..Style::default()
     };
-    let speed_box= Style {
-        background_color: StyleProp::Value(Color { r: 0., g: 1., b: 1., a: alpha }),
+    let speed_box = Style {
+        background_color: StyleProp::Value(Color {
+            r: 0.,
+            g: 1.,
+            b: 1.,
+            a: alpha,
+        }),
         layout_type: StyleProp::Value(LayoutType::Row),
         ..Style::default()
     };
-    let defence_box= Style {
-        background_color: StyleProp::Value(Color { r: 1., g: 1., b: 0., a: alpha }),
+    let defence_box = Style {
+        background_color: StyleProp::Value(Color {
+            r: 1.,
+            g: 1.,
+            b: 0.,
+            a: alpha,
+        }),
         layout_type: StyleProp::Value(LayoutType::Row),
         ..Style::default()
     };

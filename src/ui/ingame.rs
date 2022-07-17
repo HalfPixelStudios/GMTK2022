@@ -1,11 +1,17 @@
-use bevy::{app::*, ecs::prelude::*, core::Name};
+use bevy::{app::*, core::Name, ecs::prelude::*};
 use kayak_ui::{
     bevy::*,
-    core::{styles::*, Binding, Color, bind, render, rsx, widget, VecTracker, constructor, Bound, MutableBound, WidgetProps},
+    core::{
+        bind, constructor, render, rsx, styles::*, widget, Binding, Bound, Color, MutableBound,
+        VecTracker, WidgetProps,
+    },
     widgets::*,
 };
 
-use crate::{troop::{Tag, Stats}, game::Game};
+use crate::{
+    game::Game,
+    troop::{Stats, Tag},
+};
 
 use super::components::stats_board::StatsBoard;
 
@@ -33,11 +39,9 @@ struct StatData {
 }
 
 fn render_ui(mut cmd: Commands) {
-
     cmd.insert_resource(bind(StatData::default()));
 
     let context = BevyContext::new(|context| {
-
         let alpha = 0.5;
         let main_container = Style {
             layout_type: StyleProp::Value(LayoutType::Row),
@@ -45,13 +49,23 @@ fn render_ui(mut cmd: Commands) {
         };
 
         let party_container = Style {
-            background_color: StyleProp::Value(Color { r: 0., g: 0.5, b: 0., a: alpha }),
+            background_color: StyleProp::Value(Color {
+                r: 0.,
+                g: 0.5,
+                b: 0.,
+                a: alpha,
+            }),
             width: StyleProp::Value(Units::Percentage(10.)),
             ..Default::default()
         };
 
         let enemies_container = Style {
-            background_color: StyleProp::Value(Color { r: 0., g: 0.5, b: 0.5, a: alpha }),
+            background_color: StyleProp::Value(Color {
+                r: 0.,
+                g: 0.5,
+                b: 0.5,
+                a: alpha,
+            }),
             left: StyleProp::Value(Units::Percentage(80.)),
             width: StyleProp::Value(Units::Percentage(10.)),
             ..Default::default()
@@ -73,59 +87,64 @@ fn render_ui(mut cmd: Commands) {
     cmd.insert_resource(context);
 }
 
-
 #[derive(WidgetProps, Debug, PartialEq, Clone, Default)]
 struct StatsListProps {
     // i don't like this, but having some issues using the Tag enum here (irrefutability or sm)
-    is_player: bool
+    is_player: bool,
 }
 
 #[widget]
 fn StatsList(props: StatsListProps) {
-
-    let stat_data_binding = context.query_world::<Res<Binding<StatData>>, _, _>(|stat_data| stat_data.clone());
+    let stat_data_binding =
+        context.query_world::<Res<Binding<StatData>>, _, _>(|stat_data| stat_data.clone());
     context.bind(&stat_data_binding);
 
     if props.is_player {
         rsx! {
-            <>
-            {VecTracker::from(stat_data_binding.get().party.iter().map(|data| {
-                constructor! {
-                    <StatsBoard troop_name={data.troop_name.clone()} health_percent={data.health_percent} speed={data.speed} defence={data.defence}></StatsBoard>
-                }
-            }))}
-            </>
-       }
+             <>
+             {VecTracker::from(stat_data_binding.get().party.iter().map(|data| {
+                 constructor! {
+                     <StatsBoard troop_name={data.troop_name.clone()} health_percent={data.health_percent} speed={data.speed} defence={data.defence}></StatsBoard>
+                 }
+             }))}
+             </>
+        }
     } else {
         rsx! {
-            <>
-            {VecTracker::from(stat_data_binding.get().enemies.iter().map(|data| {
-                constructor! {
-                    <StatsBoard troop_name={data.troop_name.clone()} health_percent={data.health_percent} speed={data.speed} defence={data.defence}></StatsBoard>
-                }
-            }))}
-            </>
-       }
+             <>
+             {VecTracker::from(stat_data_binding.get().enemies.iter().map(|data| {
+                 constructor! {
+                     <StatsBoard troop_name={data.troop_name.clone()} health_percent={data.health_percent} speed={data.speed} defence={data.defence}></StatsBoard>
+                 }
+             }))}
+             </>
+        }
     }
 }
-
 
 fn destroy_ui(mut cmd: Commands) {
     cmd.remove_resource::<BevyContext>();
 }
 
 fn update_stat_data(query: Query<(&Name, &Tag, &Stats)>, binding: Res<Binding<StatData>>) {
-     
     let mut new_stat_data = StatData::default();
 
     for (name, tag, stats) in query.iter() {
-
         let health_percent = stats.health() as f32 / stats.base_health() as f32;
-        let stat_entry = StatDataEntry { troop_name: name.into(),  health_percent, speed: stats.speed(), defence: stats.defence() };
+        let stat_entry = StatDataEntry {
+            troop_name: name.into(),
+            health_percent,
+            speed: stats.speed(),
+            defence: stats.defence(),
+        };
 
         match *tag {
-            Tag::Player => { new_stat_data.party.push(stat_entry); },
-            Tag::Enemy => { new_stat_data.enemies.push(stat_entry); }
+            Tag::Player => {
+                new_stat_data.party.push(stat_entry);
+            }
+            Tag::Enemy => {
+                new_stat_data.enemies.push(stat_entry);
+            }
         }
     }
 
