@@ -1,4 +1,4 @@
-use bevy::{app::*, ecs::prelude::*, core::Name, input::Input, prelude::KeyCode};
+use bevy::{app::*, ecs::prelude::*, core::Name, input::Input, prelude::{KeyCode, info}};
 use kayak_ui::{
     bevy::*,
     core::{styles::*, Binding, Color, bind, render, rsx, widget, VecTracker, constructor, Bound, MutableBound, WidgetProps, use_state},
@@ -58,16 +58,25 @@ fn render_ui(mut cmd: Commands) {
 #[widget]
 fn UpgradeMenu() {
     
+    #[derive(Clone, PartialEq)]
+    pub struct Page(usize);
+
     let (chose_upgrade, set_chose_upgrade, ..) = use_state!(None as Option<i32>);
     let (chose_side, set_chose_side, ..) = use_state!(None as Option<(i32, i32)>);
     let (upgrade_cursor, set_upgrade_cursor, ..) = use_state!(0);
     let (dice_cursor, set_dice_cursor, ..) = use_state!((1,1));
-    let (page, set_page, ..) = use_state!(0);
+    let (page, set_page, ..) = use_state!(Page(0));
 
     let input_binding = context.query_world::<Res<Binding<GlobalInput>>, _, _>(|input| input.clone());
     context.bind(&input_binding);
 
     // update state
+    if page.0 >= 4 {
+        info!("done upgrade"); 
+        let mut world = context.get_global_mut::<World>().unwrap();
+        let mut game_state = world.get_resource_mut::<State<GameState>>().unwrap();
+        game_state.set(GameState::StartLevel).unwrap();
+    }
     if chose_upgrade.is_none() {
         if input_binding.get().left {
             set_upgrade_cursor((upgrade_cursor-1).clamp(0, 2));
@@ -106,15 +115,13 @@ fn UpgradeMenu() {
     }
     // go to next page
     if chose_side.is_some() {
-        set_page(page+1);
 
+        info!("go to next page");
         set_chose_upgrade(None);
         set_chose_side(None);
         set_upgrade_cursor(0);
         set_dice_cursor((1,1));
-    }
-    if page >= 4 {
-
+        set_page(Page(page.0+1));
     }
 
     // styles
@@ -123,12 +130,6 @@ fn UpgradeMenu() {
         layout_type: StyleProp::Value(LayoutType::Column),
         width: StyleProp::Value(Units::Pixels(grid_width * 3.)),
         height: StyleProp::Value(Units::Pixels(grid_width * 4.)),
-        ..Style::default()
-    };
-    let container_columns = Style {
-        layout_type: StyleProp::Value(LayoutType::Row),
-        width: StyleProp::Value(Units::Pixels(grid_width * 3.)),
-        height: StyleProp::Value(Units::Pixels(grid_width)),
         ..Style::default()
     };
 
@@ -147,6 +148,7 @@ fn UpgradeMenu() {
 
     rsx! {
         <>
+            <Text content={format!("page {}", page.0)}></Text>
             <Element styles={Some(container_rows)}>
                 {VecTracker::from((0..=3).map(|y| {
                     let container_columns = Style {
