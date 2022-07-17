@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     assetloader::{AssetSheets, DicePrefab, PrefabData, Side, TroopPrefab},
+    camera::*,
     game::GameState,
 };
 
@@ -50,8 +51,11 @@ fn spawn_dice(
     troop_data: Res<PrefabData>,
     mut troops: Res<Assets<TroopPrefab>>,
     mut dice_result: Res<DiceResult>,
+    main_camera: Query<&Transform, With<MainCamera>>,
 ) {
     info!("spawn_dice");
+
+    let translation = main_camera.single().translation + Vec3::new(280., -130., 0.);
 
     cmd.spawn_bundle(SpriteSheetBundle {
         sprite: TextureAtlasSprite {
@@ -59,13 +63,17 @@ fn spawn_dice(
             ..default()
         },
         texture_atlas: sheets.0.get("dice").unwrap().clone(),
-        transform: Transform::from_scale(Vec3::splat(1.0)),
+        transform: Transform {
+            translation,
+            scale: Vec3::splat(1.0),
+            ..default()
+        },
         ..default()
     })
     .insert(DiceUI {
         rolls: 5,
         left: 5,
-        timer: Timer::from_seconds(0.5, true),
+        timer: Timer::from_seconds(0.1, true),
     });
 }
 

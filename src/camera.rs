@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 
+use crate::game::{Game, Levels};
+
 #[derive(Debug, Component)]
-struct MainCamera;
+pub struct MainCamera;
 
 #[derive(Component)]
 pub struct CameraFollow;
@@ -14,8 +16,8 @@ impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(setup)
             .insert_resource(Cursor(Vec2::ZERO))
-            .add_system(cursor_system);
-        // .add_system(camera_controller);
+            .add_system(cursor_system)
+            .add_system(camera_controller);
     }
 }
 
@@ -51,24 +53,18 @@ fn cursor_system(
 }
 
 fn camera_controller(
-    entity_query: Query<&mut GlobalTransform, (With<CameraFollow>, Without<MainCamera>)>,
-    mut camera_query: Query<
-        (&mut Camera, &mut GlobalTransform),
-        (With<MainCamera>, Without<CameraFollow>),
-    >,
+    mut game: ResMut<Game>,
+    mut levels: ResMut<Levels>,
+    mut camera_query: Query<(&mut Camera, &mut Transform), (With<MainCamera>)>,
 ) {
     let (mut camera, mut cam_transform) = camera_query.single_mut();
-    let mut pos: Vec2 = Vec2::ZERO;
-    let mut query_len = 0.;
-    for (transform) in entity_query.iter() {
-        pos.x += transform.translation.x;
-        pos.y += transform.translation.y;
-        query_len += 1.;
+    let level = levels.levels.get(game.level).unwrap();
+    if (level.room_center - cam_transform.translation.y).abs() > 70. {
+        cam_transform.translation.y +=
+            (level.room_center - cam_transform.translation.y).signum() * 0.8;
+    } else {
+        cam_transform.translation.y = lerp(cam_transform.translation.y, level.room_center, 0.05);
     }
-    pos /= query_len;
-
-    cam_transform.translation.x = lerp(cam_transform.translation.x, pos.x, 0.1);
-    cam_transform.translation.y = lerp(cam_transform.translation.y, pos.y, 0.1);
 }
 
 fn lerp(x: f32, y: f32, by: f32) -> f32 {

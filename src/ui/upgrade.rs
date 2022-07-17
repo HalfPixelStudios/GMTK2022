@@ -1,7 +1,10 @@
-use bevy::{app::*, ecs::prelude::*, core::Name, input::Input, prelude::KeyCode};
+use bevy::{app::*, core::Name, ecs::prelude::*, input::Input, prelude::KeyCode};
 use kayak_ui::{
     bevy::*,
-    core::{styles::*, Binding, Color, bind, render, rsx, widget, VecTracker, constructor, Bound, MutableBound, WidgetProps, use_state},
+    core::{
+        bind, constructor, render, rsx, styles::*, use_state, widget, Binding, Bound, Color,
+        MutableBound, VecTracker, WidgetProps,
+    },
     widgets::*,
 };
 
@@ -13,7 +16,6 @@ impl Plugin for UpgradePlugin {
     }
 }
 
-
 #[derive(Default, Clone, PartialEq)]
 struct GlobalInput {
     left: bool,
@@ -24,17 +26,20 @@ struct GlobalInput {
 }
 
 fn render_ui(mut cmd: Commands) {
-
     cmd.insert_resource(bind(GlobalInput::default()));
 
     let context = BevyContext::new(|context| {
-
         let main_container = Style {
             left: StyleProp::Value(Units::Percentage(30.)),
             top: StyleProp::Value(Units::Percentage(10.)),
             width: StyleProp::Value(Units::Percentage(40.)),
             height: StyleProp::Value(Units::Percentage(60.)),
-            background_color: StyleProp::Value(Color { r: 0.2, g: 0.2, b: 0.2, a: 1.0 }),
+            background_color: StyleProp::Value(Color {
+                r: 0.2,
+                g: 0.2,
+                b: 0.2,
+                a: 1.0,
+            }),
             padding: StyleProp::Value(Edge::all(Units::Percentage(10.))),
             ..Style::default()
         };
@@ -53,22 +58,22 @@ fn render_ui(mut cmd: Commands) {
 
 #[widget]
 fn UpgradeMenu() {
-    
     let (chose_upgrade, set_chose_upgrade, ..) = use_state!(None as Option<i32>);
     let (chose_side, set_chose_side, ..) = use_state!(None as Option<(i32, i32)>);
     let (upgrade_cursor, set_upgrade_cursor, ..) = use_state!(0);
-    let (dice_cursor, set_dice_cursor, ..) = use_state!((1,1));
+    let (dice_cursor, set_dice_cursor, ..) = use_state!((1, 1));
 
-    let input_binding = context.query_world::<Res<Binding<GlobalInput>>, _, _>(|input| input.clone());
+    let input_binding =
+        context.query_world::<Res<Binding<GlobalInput>>, _, _>(|input| input.clone());
     context.bind(&input_binding);
 
     // update state
     if chose_upgrade.is_none() {
         if input_binding.get().left {
-            set_upgrade_cursor((upgrade_cursor-1).clamp(0, 2));
+            set_upgrade_cursor((upgrade_cursor - 1).clamp(0, 2));
         }
         if input_binding.get().right {
-            set_upgrade_cursor((upgrade_cursor+1).clamp(0 ,2));
+            set_upgrade_cursor((upgrade_cursor + 1).clamp(0, 2));
         }
         if input_binding.get().space {
             set_chose_upgrade(Some(upgrade_cursor));
@@ -77,20 +82,19 @@ fn UpgradeMenu() {
     if chose_upgrade.is_some() && chose_side.is_none() {
         let dir = if input_binding.get().left {
             (-1, 0)
-        }
-        else if input_binding.get().right {
+        } else if input_binding.get().right {
             (1, 0)
-        }
-        else if input_binding.get().up {
+        } else if input_binding.get().up {
             (0, -1)
-        }
-        else if input_binding.get().down {
+        } else if input_binding.get().down {
             (0, 1)
-        } else { (0, 0) };
+        } else {
+            (0, 0)
+        };
 
         let allowed_pos = vec![(1, 0), (0, 1), (1, 1), (2, 1), (1, 2), (1, 3)];
 
-        let new_pos = (dice_cursor.0+dir.0, dice_cursor.1+dir.1);
+        let new_pos = (dice_cursor.0 + dir.0, dice_cursor.1 + dir.1);
         if allowed_pos.contains(&new_pos) {
             set_dice_cursor(new_pos);
         }
@@ -122,7 +126,12 @@ fn UpgradeMenu() {
     };
 
     let grid_item0 = Style {
-        background_color: StyleProp::Value(Color { r: 0.0, g: 0.0, b: 0.0, a: 0.0 }),
+        background_color: StyleProp::Value(Color {
+            r: 0.0,
+            g: 0.0,
+            b: 0.0,
+            a: 0.0,
+        }),
         width: StyleProp::Value(Units::Pixels(grid_width)),
         height: StyleProp::Value(Units::Pixels(grid_width)),
         ..Style::default()
@@ -185,7 +194,6 @@ fn UpgradeMenu() {
 }
 
 fn input_manager(input: Res<Input<KeyCode>>, binding: Res<Binding<GlobalInput>>) {
-
     let mut input_state = GlobalInput::default();
     if input.just_pressed(KeyCode::Left) {
         input_state.left = true;
@@ -203,5 +211,4 @@ fn input_manager(input: Res<Input<KeyCode>>, binding: Res<Binding<GlobalInput>>)
         input_state.space = true;
     }
     binding.set(input_state);
-
 }

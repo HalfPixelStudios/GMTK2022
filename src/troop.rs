@@ -27,11 +27,17 @@ pub enum Tag {
 }
 
 #[derive(Deserialize, Clone)]
-pub enum Class {
+pub enum DiceTheme {
     Warrior,
-    Wizard,
-    Archer,
     Cleric,
+    Archer,
+    Mage,
+
+    GreenSlime,
+    BlueSlime,
+    Orc,
+    Crab,
+    Skeleton,
 }
 
 #[derive(Component)]
@@ -207,7 +213,7 @@ fn despawn_troop_system(
             game_state.overwrite_set(GameState::EndLevel).unwrap();
         }
         if game.enemies.len() == 0 {
-            game_state.set(GameState::EndLevel).unwrap();
+            game_state.overwrite_set(GameState::EndLevel).unwrap();
         }
 
         // check win or lose condition
