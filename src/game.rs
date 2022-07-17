@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
+    animation::*,
     assetloader::{Side, TroopPrefab},
     troop::{self, DespawnTroopEvent, Dice, SpawnTroopEvent, Stats, Tag, Troop},
 };
@@ -27,7 +28,7 @@ pub struct Party {
 }
 pub struct Level {
     pub enemies: Vec<String>,
-    // pub rewards:
+    pub room_center: f32, // pub rewards:
 }
 
 pub struct Levels {
@@ -51,6 +52,7 @@ impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<NextTurnEvent>().add_state(GameState::Menu);
         app.add_system_set(SystemSet::on_enter(GameState::StartLevel).with_system(start_level))
+            .add_system_set(SystemSet::on_update(GameState::StartLevel).with_system(troop_walk))
             .add_system_set(SystemSet::on_enter(GameState::StartRound).with_system(start_round))
             .add_system_set(SystemSet::on_update(GameState::StartRound).with_system(turn_resolver))
             .add_system_set(SystemSet::on_enter(GameState::EndRound).with_system(end_round))
@@ -79,6 +81,7 @@ fn setup(mut cmd: Commands) {
                 "orc.troop".into(),
                 "orc.troop".into(),
             ],
+            room_center: 0.,
         }],
     });
 }
@@ -87,7 +90,6 @@ fn start_level(
     mut game: ResMut<Game>,
     party_res: Res<Party>,
     levels_res: Res<Levels>,
-    game_state: Res<State<GameState>>,
     mut writer: EventWriter<SpawnTroopEvent>,
 ) {
     // repopulate both player and enemy lists
@@ -100,7 +102,7 @@ fn start_level(
         writer.send(SpawnTroopEvent {
             id: troop.clone(),
             tag: Tag::Player,
-            spawn_pos: Vec2::new((i as f32) * 100., 0.),
+            spawn_pos: Vec2::new((i as f32) * 100., -100.),
         });
     }
 
@@ -137,6 +139,32 @@ fn start_round(mut game: ResMut<Game>, troop_query: Query<(Entity, &Stats), With
         .collect::<Vec<Entity>>();
 
     info!("attack order {:?}", game.turn_order);
+}
+fn troop_walk(
+    mut game: ResMut<Game>,
+    mut troop_query: Query<(&mut Animation, &mut Transform)>,
+    mut levels: Res<Levels>,
+    mut game_state: ResMut<State<GameState>>,
+) {
+    info!("walk");
+    let mut arrived = true;
+    let level = levels.levels.get(game.level).unwrap();
+    let mut count = 0;
+    for (mut anims, mut transform) in troop_query.iter_mut() {
+        count += 1;
+        info!("hello");
+        anims.state = AniState::Idle;
+        let sign_dist = level.room_center - transform.translation.y;
+        if (transform.translation.y - level.room_center).abs() > 5. {
+            anims.state = AniState::Walk;
+            transform.translation.y += sign_dist.signum() * 0.5;
+            arrived = false;
+        }
+    }
+    if arrived && count != 0 {
+        info!("arrive");
+        game_state.set(GameState::StartRound).unwrap();
+    }
 }
 
 fn turn_resolver(
