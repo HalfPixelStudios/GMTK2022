@@ -1,7 +1,7 @@
 use bevy::{app::*, ecs::prelude::*, core::Name};
 use kayak_ui::{
     bevy::*,
-    core::{styles::*, Binding, Color, bind, render, rsx, widget, VecTracker, constructor, Bound, MutableBound},
+    core::{styles::*, Binding, Color, bind, render, rsx, widget, VecTracker, constructor, Bound, MutableBound, WidgetProps},
     widgets::*,
 };
 
@@ -38,29 +38,74 @@ fn render_ui(mut cmd: Commands) {
 
     let context = BevyContext::new(|context| {
 
+        let alpha = 0.5;
+        let main_container = Style {
+            layout_type: StyleProp::Value(LayoutType::Row),
+            ..Default::default()
+        };
+
+        let party_container = Style {
+            background_color: StyleProp::Value(Color { r: 0., g: 0.5, b: 0., a: alpha }),
+            width: StyleProp::Value(Units::Percentage(20.)),
+            ..Default::default()
+        };
+
+        let enemies_container = Style {
+            background_color: StyleProp::Value(Color { r: 0., g: 0.5, b: 0.5, a: alpha }),
+            left: StyleProp::Value(Units::Percentage(60.)),
+            width: StyleProp::Value(Units::Percentage(20.)),
+            ..Default::default()
+        };
+
         render! {
             <kayak_ui::widgets::App>
-                <StatsList></StatsList>
+                <Element styles={Some(main_container)}>
+                    <Background styles={Some(party_container)}>
+                        <StatsList is_player={true}></StatsList>
+                    </Background>
+                    <Background styles={Some(enemies_container)}>
+                        <StatsList is_player={false}></StatsList>
+                    </Background>
+                </Element>
             </kayak_ui::widgets::App>
         }
     });
     cmd.insert_resource(context);
 }
 
+
+#[derive(WidgetProps, Debug, PartialEq, Clone, Default)]
+struct StatsListProps {
+    // i don't like this, but having some issues using the Tag enum here (irrefutability or sm)
+    is_player: bool
+}
+
 #[widget]
-fn StatsList() {
+fn StatsList(props: StatsListProps) {
 
     let stat_data_binding = context.query_world::<Res<Binding<StatData>>, _, _>(|stat_data| stat_data.clone());
     context.bind(&stat_data_binding);
 
-    rsx! {
-        <>
-        {VecTracker::from(stat_data_binding.get().party.iter().map(|data| {
-            constructor! {
-                <StatsBoard troop_name={data.troop_name.clone()} health_percent={data.health_percent} speed={data.speed} defence={data.defence}></StatsBoard>
-            }
-        }))}
-        </>
+    if props.is_player {
+        rsx! {
+            <>
+            {VecTracker::from(stat_data_binding.get().party.iter().map(|data| {
+                constructor! {
+                    <StatsBoard troop_name={data.troop_name.clone()} health_percent={data.health_percent} speed={data.speed} defence={data.defence}></StatsBoard>
+                }
+            }))}
+            </>
+       }
+    } else {
+        rsx! {
+            <>
+            {VecTracker::from(stat_data_binding.get().enemies.iter().map(|data| {
+                constructor! {
+                    <StatsBoard troop_name={data.troop_name.clone()} health_percent={data.health_percent} speed={data.speed} defence={data.defence}></StatsBoard>
+                }
+            }))}
+            </>
+       }
     }
 }
 

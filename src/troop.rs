@@ -20,7 +20,7 @@ pub struct DespawnTroopEvent {
 #[derive(Component)]
 pub struct Troop;
 
-#[derive(Component, Clone, PartialEq)]
+#[derive(Component, Clone, PartialEq, Debug)]
 pub enum Tag {
     Player,
     Enemy,
