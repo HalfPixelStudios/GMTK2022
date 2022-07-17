@@ -34,10 +34,11 @@ pub struct Party {
 pub struct Level {
     pub enemies: Vec<String>,
     pub room_center: f32, // pub rewards:
+    pub spawn_pos: f32,
 }
 
 pub struct Levels {
-    levels: Vec<Level>,
+    pub levels: Vec<Level>,
 }
 
 impl Game {
@@ -80,15 +81,28 @@ fn setup(mut cmd: Commands) {
         ],
     });
     cmd.insert_resource(Levels {
-        levels: vec![Level {
-            enemies: vec![
-                "orc.troop".into(),
-                "orc.troop".into(),
-                "orc.troop".into(),
-                "orc.troop".into(),
-            ],
-            room_center: 0.,
-        }],
+        levels: vec![
+            Level {
+                enemies: vec![
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                ],
+                room_center: 0.,
+                spawn_pos: 100.,
+            },
+            Level {
+                enemies: vec![
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                ],
+                room_center: -400.,
+                spawn_pos: 430.,
+            },
+        ],
     });
 }
 
@@ -110,20 +124,27 @@ fn start_level(
 
     // NOTE: the spawn troop handler will add the new entity to game.party and game.enemies
     // (dont like how the logic is somewhere else)
+    let level = levels_res.levels.get(game.level).unwrap();
     for (i, troop) in party_res.troops.iter().enumerate() {
         writer.send(SpawnTroopEvent {
             id: troop.clone(),
             tag: Tag::Player,
-            spawn_pos: Vec2::new((i as f32) * 100., 100.),
+            spawn_pos: Vec2::new(
+                -100. + (i as f32) * 100.,
+                level.room_center + level.spawn_pos,
+            ),
         });
     }
 
-    let level = levels_res.levels.get(game.level).unwrap();
     for (i, enemy) in level.enemies.iter().enumerate() {
+        let level = levels_res.levels.get(game.level).unwrap();
         writer.send(SpawnTroopEvent {
             id: enemy.clone(),
             tag: Tag::Enemy,
-            spawn_pos: Vec2::new((i as f32) * 100., -100.),
+            spawn_pos: Vec2::new(
+                -100. + (i as f32) * 100.,
+                level.room_center - level.spawn_pos,
+            ),
         });
     }
 }
@@ -270,7 +291,7 @@ fn end_turn(
     game_state.set(GameState::StartTurn).unwrap();
 }
 
-fn end_level(game: Res<Game>, mut game_state: ResMut<State<GameState>>) {
+fn end_level(mut game: ResMut<Game>, mut game_state: ResMut<State<GameState>>) {
     info!("end_level");
     // for EndLevelEvent { passed } in events.iter() {
     //     println!("level ended!");
@@ -282,5 +303,6 @@ fn end_level(game: Res<Game>, mut game_state: ResMut<State<GameState>>) {
     //         writer.send(StartLevelEvent { level: game.level });
     //     }
     // }
+    game.level += 1;
     game_state.set(GameState::StartLevel).unwrap();
 }

@@ -65,7 +65,7 @@ fn spawn_dice(
     .insert(DiceUI {
         rolls: 5,
         left: 5,
-        timer: Timer::from_seconds(0.5, true),
+        timer: Timer::from_seconds(0.1, true),
     });
 }
 
