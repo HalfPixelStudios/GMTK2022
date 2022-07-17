@@ -97,10 +97,6 @@ pub fn StatsBoard(props: StatsBoardProps) {
                 <Image handle={defence_handle} styles={Some(image_style)}></Image>
                 <Text content={format!("{}", props.defence)}></Text>
             </Background>
-                // <Image handle={heart_handle} styles={Some(image_style)}></Image>
-                // <Text styles={Some(text_style)} content={format!("{}", props.speed)}></Text>
-                // <Image handle={defence_handle} styles={Some(image_style)}></Image>
-                // <Text  styles={Some(text_style)} content={format!("{}", props.defence)}></Text>
         </Element>
     }
 }
