@@ -18,6 +18,7 @@ pub enum GameState {
     EndTurn,
     EndRound,
     EndLevel,
+    SelectUpgrades,
 }
 
 pub struct NextTurnEvent;
@@ -30,7 +31,7 @@ pub struct Game {
 
 // upgradeable party (reinitialize on every level)
 pub struct Party {
-    troops: Vec<String>,
+    pub troops: Vec<String>,
 }
 pub struct Level {
     pub enemies: Vec<String>,
@@ -308,6 +309,6 @@ fn end_level(mut game: ResMut<Game>, mut game_state: ResMut<State<GameState>>) {
     //         writer.send(StartLevelEvent { level: game.level });
     //     }
     // }
-    game.level += 1;
-    game_state.set(GameState::StartLevel).unwrap();
+    // game.level += 1;
+    game_state.set(GameState::SelectUpgrades).unwrap();
 }

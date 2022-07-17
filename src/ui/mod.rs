@@ -13,7 +13,7 @@ impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(BevyKayakUIPlugin)
             .add_plugin(InGamePlugin)
-            // .add_plugin(UpgradePlugin)
+            .add_plugin(UpgradePlugin)
             .add_startup_system(setup);
     }
 }

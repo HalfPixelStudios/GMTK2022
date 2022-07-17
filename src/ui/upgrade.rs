@@ -1,4 +1,4 @@
-use bevy::{app::*, core::Name, ecs::prelude::*, input::Input, prelude::KeyCode};
+use bevy::{app::*, ecs::prelude::*, core::Name, input::Input, prelude::{KeyCode, info, Assets}};
 use kayak_ui::{
     bevy::*,
     core::{
@@ -8,11 +8,15 @@ use kayak_ui::{
     widgets::*,
 };
 
+use crate::{game::{GameState, Party}, assetloader::{TroopPrefab, PrefabData}, dice::get_dice_coords, troop::DiceTheme};
+
 pub struct UpgradePlugin;
 
 impl Plugin for UpgradePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(render_ui).add_system(input_manager);
+        app.add_system_set(SystemSet::on_enter(GameState::SelectUpgrades).with_system(render_ui))
+            .add_system_set(SystemSet::on_update(GameState::SelectUpgrades).with_system(input_manager))
+            .add_system_set(SystemSet::on_exit(GameState::SelectUpgrades).with_system(destroy_ui));
     }
 }
 
@@ -58,16 +62,27 @@ fn render_ui(mut cmd: Commands) {
 
 #[widget]
 fn UpgradeMenu() {
+    
+    #[derive(Clone, PartialEq)]
+    pub struct Page(usize);
+
     let (chose_upgrade, set_chose_upgrade, ..) = use_state!(None as Option<i32>);
     let (chose_side, set_chose_side, ..) = use_state!(None as Option<(i32, i32)>);
     let (upgrade_cursor, set_upgrade_cursor, ..) = use_state!(0);
-    let (dice_cursor, set_dice_cursor, ..) = use_state!((1, 1));
+    let (dice_cursor, set_dice_cursor, ..) = use_state!((1,1));
+    let (page, set_page, ..) = use_state!(Page(0));
 
     let input_binding =
         context.query_world::<Res<Binding<GlobalInput>>, _, _>(|input| input.clone());
     context.bind(&input_binding);
 
     // update state
+    if page.0 >= 4 {
+        info!("done upgrade"); 
+        let mut world = context.get_global_mut::<World>().unwrap();
+        let mut game_state = world.get_resource_mut::<State<GameState>>().unwrap();
+        game_state.set(GameState::StartLevel).unwrap();
+    }
     if chose_upgrade.is_none() {
         if input_binding.get().left {
             set_upgrade_cursor((upgrade_cursor - 1).clamp(0, 2));
@@ -103,6 +118,31 @@ fn UpgradeMenu() {
             set_chose_side(Some(new_pos));
         }
     }
+    // go to next page
+    if chose_side.is_some() {
+
+        info!("go to next page");
+        set_chose_upgrade(None);
+        set_chose_side(None);
+        set_upgrade_cursor(0);
+        set_dice_cursor((1,1));
+        set_page(Page(page.0+1));
+    }
+
+    // get images
+    {
+        let world = context.get_global::<World>().unwrap();
+        let party = world.get_resource::<Res<Party>>().unwrap();
+        let prefab_lib = world.get_resource::<Res<Assets<TroopPrefab>>>().unwrap();
+        let troop_data = world.get_resource::<Res<PrefabData>>().unwrap();
+        let id = party.troops.get(page.0).unwrap();
+
+        let prefab = prefab_lib.get(troop_data.0.get(id).unwrap()).unwrap();
+        // TODO get theme from prefab as well
+
+        let coords = prefab.default_dice.sides.iter().map(|s| get_dice_coords(DiceTheme::Warrior, s.clone()));
+
+    }
 
     // styles
     let grid_width = 32.;
@@ -110,12 +150,6 @@ fn UpgradeMenu() {
         layout_type: StyleProp::Value(LayoutType::Column),
         width: StyleProp::Value(Units::Pixels(grid_width * 3.)),
         height: StyleProp::Value(Units::Pixels(grid_width * 4.)),
-        ..Style::default()
-    };
-    let container_columns = Style {
-        layout_type: StyleProp::Value(LayoutType::Row),
-        width: StyleProp::Value(Units::Pixels(grid_width * 3.)),
-        height: StyleProp::Value(Units::Pixels(grid_width)),
         ..Style::default()
     };
 
@@ -139,6 +173,7 @@ fn UpgradeMenu() {
 
     rsx! {
         <>
+            <Text content={format!("page {}", page.0)}></Text>
             <Element styles={Some(container_rows)}>
                 {VecTracker::from((0..=3).map(|y| {
                     let container_columns = Style {
@@ -211,4 +246,8 @@ fn input_manager(input: Res<Input<KeyCode>>, binding: Res<Binding<GlobalInput>>)
         input_state.space = true;
     }
     binding.set(input_state);
+}
+
+fn destroy_ui(mut cmd: Commands) {
+    cmd.remove_resource::<BevyContext>();
 }

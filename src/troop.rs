@@ -208,12 +208,12 @@ fn despawn_troop_system(
                 game.party.len(),
                 game.enemies.len()
             );
-        }
-        if game.party.len() == 0 {
-            game_state.overwrite_set(GameState::EndLevel).unwrap();
-        }
-        if game.enemies.len() == 0 {
-            game_state.overwrite_set(GameState::EndLevel).unwrap();
+            if game.party.len() == 0 {
+                game_state.set(GameState::EndLevel).unwrap();
+            }
+            if game.enemies.len() == 0 {
+                game_state.set(GameState::EndLevel).unwrap();
+            }
         }
 
         // check win or lose condition
