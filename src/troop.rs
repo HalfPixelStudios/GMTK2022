@@ -5,7 +5,7 @@ use serde::Deserialize;
 use crate::{
     animation::*,
     assetloader::{AssetSheets, PrefabData, Side, TroopPrefab},
-    game::Game,
+    game::{start_turn, Game, GameState},
 };
 
 pub struct SpawnTroopEvent {
@@ -105,7 +105,7 @@ impl Plugin for TroopPlugin {
         app.add_event::<SpawnTroopEvent>()
             .add_event::<DespawnTroopEvent>()
             .add_system(spawn_troop_system)
-            .add_system(despawn_troop_system);
+            .add_system(despawn_troop_system.before(start_turn));
     }
 }
 
@@ -170,13 +170,44 @@ fn spawn_troop_system(
 }
 
 fn despawn_troop_system(
-    mut writer: EventWriter<DespawnTroopEvent>,
-    troop_query: Query<(Entity, &Stats), With<Troop>>,
+    mut cmd: Commands,
+    mut game: ResMut<Game>,
+    mut events: EventReader<DespawnTroopEvent>,
+    mut game_state: ResMut<State<GameState>>,
+    troop_query: Query<(Entity, &Stats, &Tag), With<Troop>>,
 ) {
-    for (e, stats) in troop_query.iter() {
+    for (entity, stats, tag) in troop_query.iter() {
         if stats.is_dead() {
-            info!("troop has died!");
-            writer.send(DespawnTroopEvent { entity: e });
+            match *tag {
+                Tag::Player => &mut game.party,
+                Tag::Enemy => &mut game.enemies,
+            }
+            .retain(|e| *e != entity);
+
+            // also remove them from the attack order
+            game.turn_order.retain(|e| *e != entity);
+
+            cmd.entity(entity).despawn();
+
+            info!(
+                "party left {}, enemies left {}",
+                game.party.len(),
+                game.enemies.len()
+            );
         }
+        if game.party.len() == 0 {
+            game_state.overwrite_set(GameState::EndLevel).unwrap();
+        }
+        if game.enemies.len() == 0 {
+            game_state.set(GameState::EndLevel).unwrap();
+        }
+
+        // check win or lose condition
+        // if game.party.len() == 0 {
+        //     writer.send(EndLevelEvent { passed: false });
+        // }
+        // if game.enemies.len() == 0 {
+        //     writer.send(EndLevelEvent { passed: true });
+        // }
     }
 }

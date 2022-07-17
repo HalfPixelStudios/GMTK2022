@@ -3,13 +3,18 @@ use bevy::prelude::*;
 use crate::{
     animation::*,
     assetloader::{Side, TroopPrefab},
+    dice::{DiceResult, DiceUI},
     troop::{self, DespawnTroopEvent, Dice, SpawnTroopEvent, Stats, Tag, Troop},
 };
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum GameState {
     Menu,
     StartLevel,
+    InRound,
     StartRound,
+    StartTurn,
+    Roll,
+    EndTurn,
     EndRound,
     EndLevel,
 }
@@ -54,13 +59,14 @@ impl Plugin for GamePlugin {
         app.add_system_set(SystemSet::on_enter(GameState::StartLevel).with_system(start_level))
             .add_system_set(SystemSet::on_update(GameState::StartLevel).with_system(troop_walk))
             .add_system_set(SystemSet::on_enter(GameState::StartRound).with_system(start_round))
-            .add_system_set(SystemSet::on_update(GameState::StartRound).with_system(turn_resolver))
+            .add_system_set(SystemSet::on_enter(GameState::StartTurn).with_system(start_turn))
+            .add_system_set(SystemSet::on_enter(GameState::EndTurn).with_system(end_turn))
             .add_system_set(SystemSet::on_enter(GameState::EndRound).with_system(end_round))
             .add_system_set(SystemSet::on_enter(GameState::EndLevel).with_system(end_level));
 
         app.insert_resource(Game::new())
             .add_startup_system(setup)
-            .add_system(troop_died_event);
+            .add_system(remove_stupid_dice);
     }
 }
 
@@ -87,11 +93,17 @@ fn setup(mut cmd: Commands) {
 }
 
 fn start_level(
+    mut cmd: Commands,
     mut game: ResMut<Game>,
     party_res: Res<Party>,
     levels_res: Res<Levels>,
     mut writer: EventWriter<SpawnTroopEvent>,
+    mut troop_query: Query<Entity, With<Troop>>,
 ) {
+    for entity in troop_query.iter() {
+        cmd.entity(entity).despawn();
+    }
+
     // repopulate both player and enemy lists
     game.party.clear();
     game.enemies.clear();
@@ -102,7 +114,7 @@ fn start_level(
         writer.send(SpawnTroopEvent {
             id: troop.clone(),
             tag: Tag::Player,
-            spawn_pos: Vec2::new((i as f32) * 100., -100.),
+            spawn_pos: Vec2::new((i as f32) * 100., 100.),
         });
     }
 
@@ -111,12 +123,17 @@ fn start_level(
         writer.send(SpawnTroopEvent {
             id: enemy.clone(),
             tag: Tag::Enemy,
-            spawn_pos: Vec2::new((i as f32) * 100., 100.),
+            spawn_pos: Vec2::new((i as f32) * 100., -100.),
         });
     }
 }
 
-fn start_round(mut game: ResMut<Game>, troop_query: Query<(Entity, &Stats), With<Troop>>) {
+fn start_round(
+    mut game_state: ResMut<State<GameState>>,
+    mut game: ResMut<Game>,
+    troop_query: Query<(Entity, &Stats), With<Troop>>,
+) {
+    info!("start round");
     game.turn_order.clear();
 
     // determine attacking order based on speed
@@ -126,6 +143,7 @@ fn start_round(mut game: ResMut<Game>, troop_query: Query<(Entity, &Stats), With
         // check if troop should actually be in level (may or may not be needed)
         if !game.party.contains(&e) && !game.enemies.contains(&e) {
             warn!("found troop that is not in level");
+
             continue;
         }
 
@@ -139,6 +157,7 @@ fn start_round(mut game: ResMut<Game>, troop_query: Query<(Entity, &Stats), With
         .collect::<Vec<Entity>>();
 
     info!("attack order {:?}", game.turn_order);
+    game_state.set(GameState::StartTurn).unwrap();
 }
 fn troop_walk(
     mut game: ResMut<Game>,
@@ -146,82 +165,113 @@ fn troop_walk(
     mut levels: Res<Levels>,
     mut game_state: ResMut<State<GameState>>,
 ) {
-    info!("walk");
     let mut arrived = true;
     let level = levels.levels.get(game.level).unwrap();
     let mut count = 0;
     for (mut anims, mut transform) in troop_query.iter_mut() {
         count += 1;
-        info!("hello");
         anims.state = AniState::Idle;
         let sign_dist = level.room_center - transform.translation.y;
-        if (transform.translation.y - level.room_center).abs() > 5. {
+        if (transform.translation.y - level.room_center).abs() > 30. {
             anims.state = AniState::Walk;
-            transform.translation.y += sign_dist.signum() * 0.5;
+            transform.translation.y += sign_dist.signum() * 0.8;
             arrived = false;
         }
     }
     if arrived && count != 0 {
-        info!("arrive");
         game_state.set(GameState::StartRound).unwrap();
     }
 }
-
-fn turn_resolver(
-    mut game_state: ResMut<State<GameState>>,
-    mut game: ResMut<Game>,
-    mut troop_query: Query<(Entity, &Dice, &mut Stats, &Tag)>,
-    mut events: EventReader<NextTurnEvent>,
+fn remove_stupid_dice(
+    game_state: ResMut<State<GameState>>,
+    mut cmd: Commands,
+    stupid_dice: Query<Entity, With<DiceUI>>,
 ) {
-    for _ in events.iter() {
-        if game.turn_order.len() == 0 {
-            info!("end round");
-            game_state.set(GameState::EndRound).unwrap();
-
-            return;
-        }
-
-        let next_turn = game.turn_order.pop().unwrap();
-
-        // roll dice for troop
-        let dice = troop_query.get_component::<Dice>(next_turn).unwrap();
-        let tag = troop_query.get_component::<Tag>(next_turn).unwrap();
-        match dice.roll() {
-            Side::Blank => {
-                info!("rolled a blank");
-            }
-            Side::Number(num) => {
-                info!("rolled a number: {}", num);
-
-                use rand::{seq::SliceRandom, thread_rng};
-
-                // choose target to attack
-                let enemy_pool = match tag {
-                    Tag::Player => &game.enemies,
-                    Tag::Enemy => &game.party,
-                };
-
-                if let Some(target) = enemy_pool.choose(&mut thread_rng()) {
-                    println!("target {:?}", target);
-                    let mut target_stat = troop_query
-                        .get_component_mut::<Stats>(target.clone())
-                        .unwrap();
-                    target_stat.take_damage(num);
-                }
-            }
-
-            Side::Ability(ability) => {
-                info!("rolled an ability {}", ability);
-            }
-        }
+    if *game_state.current() == GameState::Roll {
+        return;
+    }
+    for d in stupid_dice.iter() {
+        cmd.entity(d).despawn();
     }
 }
 
+pub fn start_turn(
+    mut game_state: ResMut<State<GameState>>,
+    mut game: ResMut<Game>,
+    mut troop_query: Query<(Entity, &Dice, &mut Stats, &Tag)>,
+    mut dice_result: ResMut<DiceResult>,
+) {
+    info!("start_turn");
+
+    if game.turn_order.len() == 0 {
+        game_state.set(GameState::StartRound).unwrap();
+        return;
+    }
+    let next_turn = game.turn_order.last().unwrap();
+    info!("{:?}", next_turn);
+
+    // roll dice for troop
+    let dice = troop_query.get_component::<Dice>(*next_turn).unwrap();
+    dice_result.sides = dice.sides.clone();
+    dice_result.result = dice.roll();
+    game_state.set(GameState::Roll).unwrap();
+}
+
 fn end_round(mut game_state: ResMut<State<GameState>>) {
+    info!("end round");
     game_state.set(GameState::StartRound).unwrap();
+}
+fn end_turn(
+    mut game: ResMut<Game>,
+    dice_result: Res<DiceResult>,
+    mut game_state: ResMut<State<GameState>>,
+    mut troop_query: Query<(Entity, &Dice, &mut Stats, &Tag)>,
+) {
+    info!("end_turn");
+    info!("{:?}", game.turn_order);
+
+    if game.turn_order.len() == 0 {
+        game_state.set(GameState::EndRound).unwrap();
+        return;
+    }
+
+    let next_turn = game.turn_order.pop().unwrap();
+
+    let tag = troop_query.get_component::<Tag>(next_turn).unwrap();
+    match dice_result.result.clone() {
+        Side::Blank => {
+            info!("rolled a blank");
+        }
+        Side::Number(num) => {
+            info!("rolled a number: {}", num);
+
+            use rand::{seq::SliceRandom, thread_rng};
+
+            // choose target to attack
+            let enemy_pool = match tag {
+                Tag::Player => &game.enemies,
+                Tag::Enemy => &game.party,
+            };
+
+            if let Some(target) = enemy_pool.choose(&mut thread_rng()) {
+                println!("target {:?}", target);
+                let mut target_stat = troop_query
+                    .get_component_mut::<Stats>(target.clone())
+                    .unwrap();
+                target_stat.take_damage(num);
+            }
+        }
+
+        Side::Ability(ability) => {
+            info!("rolled an ability {}", ability);
+        }
+    }
+
+    game_state.set(GameState::StartTurn).unwrap();
 }
 
 fn end_level(game: Res<Game>, mut game_state: ResMut<State<GameState>>) {
+    info!("end_level");
     // for EndLevelEvent { passed } in events.iter() {
     //     println!("level ended!");
     //     if *passed {
@@ -233,47 +283,4 @@ fn end_level(game: Res<Game>, mut game_state: ResMut<State<GameState>>) {
     //     }
     // }
     game_state.set(GameState::StartLevel).unwrap();
-}
-
-fn troop_died_event(
-    mut cmd: Commands,
-    mut game: ResMut<Game>,
-    mut events: EventReader<DespawnTroopEvent>,
-    mut game_state: ResMut<State<GameState>>,
-    troop_query: Query<(Entity, &Tag), With<Troop>>,
-) {
-    for DespawnTroopEvent { entity } in events.iter() {
-        if let Ok(tag) = troop_query.get_component::<Tag>(*entity) {
-            match *tag {
-                Tag::Player => &mut game.party,
-                Tag::Enemy => &mut game.enemies,
-            }
-            .retain(|e| e != entity);
-
-            // also remove them from the attack order
-            game.turn_order.retain(|e| e != entity);
-
-            cmd.entity(*entity).despawn();
-
-            println!(
-                "party left {}, enemies left {}",
-                game.party.len(),
-                game.enemies.len()
-            );
-        }
-        if game.party.len() == 0 {
-            game_state.set(GameState::EndLevel).unwrap();
-        }
-        if game.enemies.len() == 0 {
-            game_state.set(GameState::EndLevel).unwrap();
-        }
-
-        // check win or lose condition
-        // if game.party.len() == 0 {
-        //     writer.send(EndLevelEvent { passed: false });
-        // }
-        // if game.enemies.len() == 0 {
-        //     writer.send(EndLevelEvent { passed: true });
-        // }
-    }
 }
