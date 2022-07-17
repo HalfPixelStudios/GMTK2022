@@ -30,7 +30,7 @@ pub struct Game {
 
 // upgradeable party (reinitialize on every level)
 pub struct Party {
-    troops: Vec<String>,
+    pub troops: Vec<String>,
 }
 pub struct Level {
     pub enemies: Vec<String>,

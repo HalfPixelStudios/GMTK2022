@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     assetloader::{AssetSheets, DicePrefab, PrefabData, Side, TroopPrefab},
     camera::*,
-    game::GameState,
+    game::GameState, troop::DiceTheme,
 };
 
 pub struct DicePlugin;
@@ -98,19 +98,6 @@ fn roll_dice(
             sprite.index += 1;
         }
     }
-}
-
-pub enum DiceTheme {
-    Warrior,
-    Cleric,
-    Archer,
-    Mage,
-
-    GreenSlime,
-    BlueSlime,
-    Orc,
-    Crab,
-    Skeleton,
 }
 
 pub fn get_dice_coords(theme: DiceTheme, side: Side) -> (usize, usize) {

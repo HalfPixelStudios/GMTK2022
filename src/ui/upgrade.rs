@@ -1,4 +1,4 @@
-use bevy::{app::*, ecs::prelude::*, core::Name, input::Input, prelude::{KeyCode, info}};
+use bevy::{app::*, ecs::prelude::*, core::Name, input::Input, prelude::{KeyCode, info, Assets}};
 use kayak_ui::{
     bevy::*,
     core::{
@@ -8,7 +8,7 @@ use kayak_ui::{
     widgets::*,
 };
 
-use crate::game::GameState;
+use crate::{game::{GameState, Party}, assetloader::{TroopPrefab, PrefabData}, dice::get_dice_coords, troop::DiceTheme};
 
 pub struct UpgradePlugin;
 
@@ -127,6 +127,21 @@ fn UpgradeMenu() {
         set_upgrade_cursor(0);
         set_dice_cursor((1,1));
         set_page(Page(page.0+1));
+    }
+
+    // get images
+    {
+        let world = context.get_global::<World>().unwrap();
+        let party = world.get_resource::<Res<Party>>().unwrap();
+        let prefab_lib = world.get_resource::<Res<Assets<TroopPrefab>>>().unwrap();
+        let troop_data = world.get_resource::<Res<PrefabData>>().unwrap();
+        let id = party.troops.get(page.0).unwrap();
+
+        let prefab = prefab_lib.get(troop_data.0.get(id).unwrap()).unwrap();
+        // TODO get theme from prefab as well
+
+        let coords = prefab.default_dice.sides.iter().map(|s| get_dice_coords(DiceTheme::Warrior, s.clone()));
+
     }
 
     // styles
