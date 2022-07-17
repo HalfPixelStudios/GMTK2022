@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_bobs::sfx::PlaySoundEvent;
 use rand::{prelude::SliceRandom, thread_rng};
 
 use crate::{
@@ -77,7 +78,7 @@ fn spawn_dice(
     .insert(DiceUI {
         rolls: 5,
         left: 5,
-        timer: Timer::from_seconds(0.1, true),
+        timer: Timer::from_seconds(0.5, true),
     });
 }
 
@@ -87,10 +88,16 @@ fn roll_dice(
     time: Res<Time>,
     dice_result: Res<DiceResult>,
     mut game_state: ResMut<State<GameState>>,
+    mut sound_writer: EventWriter<PlaySoundEvent>,
 ) {
     for (entity, mut d, mut sprite) in dice_query.iter_mut() {
         if (d.left == 0) {
             cmd.entity(entity).despawn();
+            sound_writer.send(PlaySoundEvent::random_sound(vec![
+                "roll1.wav".into(),
+                "roll2.wav".into(),
+                "roll3.wav".into(),
+            ]));
             game_state.set(GameState::EndTurn).unwrap();
 
             return;

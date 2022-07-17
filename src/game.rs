@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_bobs::sfx::PlaySoundEvent;
 
 use crate::{
     animation::*,
@@ -102,6 +103,26 @@ fn setup(mut cmd: Commands) {
                 room_center: -400.,
                 spawn_pos: 430.,
             },
+            Level {
+                enemies: vec![
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                ],
+                room_center: -800.,
+                spawn_pos: 430.,
+            },
+            Level {
+                enemies: vec![
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                ],
+                room_center: -1200.,
+                spawn_pos: 430.,
+            },
         ],
     });
 }
@@ -130,7 +151,7 @@ fn start_level(
             id: troop.clone(),
             tag: Tag::Player,
             spawn_pos: Vec2::new(
-                -100. + (i as f32) * 100.,
+                -150. + (i as f32) * 100.,
                 level.room_center + level.spawn_pos,
             ),
         });
@@ -142,7 +163,7 @@ fn start_level(
             id: enemy.clone(),
             tag: Tag::Enemy,
             spawn_pos: Vec2::new(
-                -100. + (i as f32) * 100.,
+                -150. + (i as f32) * 100.,
                 level.room_center - level.spawn_pos,
             ),
         });
@@ -247,6 +268,7 @@ fn end_turn(
     dice_result: Res<DiceResult>,
     mut game_state: ResMut<State<GameState>>,
     mut troop_query: Query<(Entity, &Dice, &mut Stats, &Tag)>,
+    mut sound_writer: EventWriter<PlaySoundEvent>,
 ) {
     info!("end_turn");
     info!("{:?}", game.turn_order);
@@ -259,6 +281,7 @@ fn end_turn(
     let next_turn = game.turn_order.pop().unwrap();
 
     let tag = troop_query.get_component::<Tag>(next_turn).unwrap();
+
     match dice_result.result.clone() {
         Side::Blank => {
             info!("rolled a blank");
@@ -280,6 +303,12 @@ fn end_turn(
                     .get_component_mut::<Stats>(target.clone())
                     .unwrap();
                 target_stat.take_damage(num);
+
+                sound_writer.send(PlaySoundEvent::random_sound(vec![
+                    "hit1.wav".into(),
+                    "hit2.wav".into(),
+                    "hit3.wav".into(),
+                ]));
             }
         }
 
@@ -304,5 +333,8 @@ fn end_level(mut game: ResMut<Game>, mut game_state: ResMut<State<GameState>>) {
     //     }
     // }
     game.level += 1;
+    if game.level == 4 {
+        game.level = 0;
+    }
     game_state.set(GameState::StartLevel).unwrap();
 }
