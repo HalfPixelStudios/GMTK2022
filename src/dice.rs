@@ -1,9 +1,11 @@
 use bevy::prelude::*;
+use rand::{prelude::SliceRandom, thread_rng};
 
 use crate::{
     assetloader::{AssetSheets, DicePrefab, PrefabData, Side, TroopPrefab},
     camera::*,
     game::GameState,
+    troop::DiceTheme,
 };
 
 pub struct DicePlugin;
@@ -29,6 +31,7 @@ impl DiceUI {
 pub struct DiceResult {
     pub result: Side,
     pub sides: [Side; 6],
+    pub theme: DiceTheme,
 }
 impl Default for DiceResult {
     fn default() -> Self {
@@ -42,6 +45,7 @@ impl Default for DiceResult {
                 Side::Blank,
                 Side::Blank,
             ],
+            theme: DiceTheme::Warrior,
         }
     }
 }
@@ -81,6 +85,7 @@ fn roll_dice(
     mut cmd: Commands,
     mut dice_query: Query<(Entity, &mut DiceUI, &mut TextureAtlasSprite)>,
     time: Res<Time>,
+    dice_result: Res<DiceResult>,
     mut game_state: ResMut<State<GameState>>,
 ) {
     for (entity, mut d, mut sprite) in dice_query.iter_mut() {
@@ -92,28 +97,19 @@ fn roll_dice(
         }
 
         d.timer.tick(time.delta());
+        let mut rng = thread_rng();
 
         if d.timer.just_finished() {
             d.left -= 1;
-            sprite.index += 1;
+            sprite.index = get_dice_coords(
+                dice_result.theme.clone(),
+                dice_result.sides.choose(&mut rng).unwrap().clone(),
+            );
         }
     }
 }
 
-pub enum DiceTheme {
-    Warrior,
-    Cleric,
-    Archer,
-    Mage,
-
-    GreenSlime,
-    BlueSlime,
-    Orc,
-    Crab,
-    Skeleton,
-}
-
-pub fn get_dice_coords(theme: DiceTheme, side: Side) -> (usize, usize) {
+pub fn get_dice_coords(theme: DiceTheme, side: Side) -> usize {
     let row: usize = match theme {
         DiceTheme::Warrior => 0,
         DiceTheme::Cleric => 1,
@@ -141,5 +137,5 @@ pub fn get_dice_coords(theme: DiceTheme, side: Side) -> (usize, usize) {
         }
     };
 
-    (row, column)
+    return (row) * 15 + column;
 }
