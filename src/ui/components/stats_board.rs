@@ -42,10 +42,11 @@ pub fn StatsBoard(props: StatsBoardProps) {
     };
 
     let troop_name = props.troop_name.clone();
+    let image_size = 16.;
 
     let container_style = Style {
         layout_type: StyleProp::Value(LayoutType::Column),
-        height: StyleProp::Value(Units::Pixels(200.)),
+        height: StyleProp::Value(Units::Pixels(80.)),
         ..Style::default()
     };
 
@@ -57,8 +58,6 @@ pub fn StatsBoard(props: StatsBoardProps) {
             b: 0.,
             a: alpha,
         }),
-        max_width: StyleProp::Value(Units::Pixels(100.)),
-        max_height: StyleProp::Value(Units::Pixels(20.)),
         layout_type: StyleProp::Value(LayoutType::Row),
         ..Style::default()
     };
@@ -69,8 +68,6 @@ pub fn StatsBoard(props: StatsBoardProps) {
             b: 1.,
             a: alpha,
         }),
-        max_width: StyleProp::Value(Units::Pixels(100.)),
-        max_height: StyleProp::Value(Units::Pixels(20.)),
         layout_type: StyleProp::Value(LayoutType::Row),
         ..Style::default()
     };
@@ -81,15 +78,13 @@ pub fn StatsBoard(props: StatsBoardProps) {
             b: 0.,
             a: alpha,
         }),
-        max_width: StyleProp::Value(Units::Pixels(100.)),
-        max_height: StyleProp::Value(Units::Pixels(20.)),
         layout_type: StyleProp::Value(LayoutType::Row),
         ..Style::default()
     };
 
     let image_style = Style {
-        width: StyleProp::Value(Units::Pixels(16.)),
-        height: StyleProp::Value(Units::Pixels(16.)),
+        width: StyleProp::Value(Units::Pixels(image_size)),
+        height: StyleProp::Value(Units::Pixels(image_size)),
         ..Style::default()
     };
     let health_bar_style = Style {
