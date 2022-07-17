@@ -17,10 +17,11 @@ TroopPrefab(
     ),
     anim: (
         frame_ranges: {
-            Idle: (627,631),
-            Attack: (840,844)
+            Idle: (627,628),
+            Attack: (840,844),
+            Walk: (627,631)
         },
-        seconds: 2
+        seconds: 0.1
     ),
     class: Warrior
 

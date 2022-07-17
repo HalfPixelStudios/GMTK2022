@@ -7,6 +7,7 @@ use serde::*;
 pub enum AniState {
     Idle,
     Attack,
+    Walk,
 }
 #[derive(Component)]
 pub struct Animation {
