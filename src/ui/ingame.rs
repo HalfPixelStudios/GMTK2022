@@ -46,14 +46,14 @@ fn render_ui(mut cmd: Commands) {
 
         let party_container = Style {
             background_color: StyleProp::Value(Color { r: 0., g: 0.5, b: 0., a: alpha }),
-            width: StyleProp::Value(Units::Percentage(20.)),
+            width: StyleProp::Value(Units::Percentage(10.)),
             ..Default::default()
         };
 
         let enemies_container = Style {
             background_color: StyleProp::Value(Color { r: 0., g: 0.5, b: 0.5, a: alpha }),
-            left: StyleProp::Value(Units::Percentage(60.)),
-            width: StyleProp::Value(Units::Percentage(20.)),
+            left: StyleProp::Value(Units::Percentage(80.)),
+            width: StyleProp::Value(Units::Percentage(10.)),
             ..Default::default()
         };
 
