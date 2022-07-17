@@ -37,7 +37,7 @@ pub struct TroopPrefab {
     pub stats: StatsPrefab,
     pub default_dice: DicePrefab,
     pub anim: AnimationPrefab,
-    pub class: Class,
+    pub class: DiceTheme,
 }
 
 pub struct AssetSheets(pub HashMap<String, Handle<TextureAtlas>>);
@@ -69,8 +69,8 @@ pub fn load_assets(
         Vec2::splat(0.0),
     ));
     let dice_handle = texture_atlases.add(TextureAtlas::from_grid_with_padding(
-        assets.load("diceRed.png"),
-        Vec2::new(64., 64.),
+        assets.load("dice.png"),
+        Vec2::new(16., 16.),
         4,
         2,
         Vec2::splat(0.0),
