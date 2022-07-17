@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::assetloader::{AssetSheets, DicePrefab, PrefabData, TroopPrefab};
+use crate::assetloader::{AssetSheets, DicePrefab, PrefabData, TroopPrefab, Side};
 
 pub struct DicePlugin;
 impl Plugin for DicePlugin {
@@ -57,6 +57,7 @@ fn spawn_dice(
         });
     }
 }
+
 fn roll_dice(
     mut cmd: Commands,
     mut dice_query: Query<(Entity, &mut DiceUI, &mut TextureAtlasSprite)>,
@@ -76,3 +77,45 @@ fn roll_dice(
         }
     }
 }
+
+pub enum DiceTheme {
+    Warrior,
+    Cleric,
+    Archer,
+    Mage,
+
+    GreenSlime,
+    BlueSlime,
+    Orc,
+    Crab,
+    Skeleton
+}
+
+pub fn get_dice_coords(theme: DiceTheme, side: Side) -> (usize, usize) {
+
+    let row: usize = match theme {
+        DiceTheme::Warrior => 0,
+        DiceTheme::Cleric => 1,
+        DiceTheme::Archer => 2,
+        DiceTheme::Mage => 3,
+        DiceTheme::GreenSlime => 4,
+        DiceTheme::BlueSlime => 5,
+        DiceTheme::Orc => 6,
+        DiceTheme::Crab => 7,
+        DiceTheme::Skeleton => 8,
+    };
+
+    let column: usize = match side {
+        Side::Blank => 0, 
+        Side::Number(number) => {
+            if 1 <= number && number <= 9 { number as usize } else { 0 }
+        },
+        Side::Ability(ability) => {
+            // TODO map all the abilties
+            0
+        }
+    };
+
+    (row, column)
+}
+
