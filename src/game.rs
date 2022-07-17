@@ -103,6 +103,26 @@ fn setup(mut cmd: Commands) {
                 room_center: -400.,
                 spawn_pos: 430.,
             },
+            Level {
+                enemies: vec![
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                ],
+                room_center: -800.,
+                spawn_pos: 430.,
+            },
+            Level {
+                enemies: vec![
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                    "orc.troop".into(),
+                ],
+                room_center: -1200.,
+                spawn_pos: 430.,
+            },
         ],
     });
 }
@@ -131,7 +151,7 @@ fn start_level(
             id: troop.clone(),
             tag: Tag::Player,
             spawn_pos: Vec2::new(
-                -100. + (i as f32) * 100.,
+                -150. + (i as f32) * 100.,
                 level.room_center + level.spawn_pos,
             ),
         });
@@ -143,7 +163,7 @@ fn start_level(
             id: enemy.clone(),
             tag: Tag::Enemy,
             spawn_pos: Vec2::new(
-                -100. + (i as f32) * 100.,
+                -150. + (i as f32) * 100.,
                 level.room_center - level.spawn_pos,
             ),
         });
@@ -284,7 +304,11 @@ fn end_turn(
                     .unwrap();
                 target_stat.take_damage(num);
 
-                sound_writer.send(PlaySoundEvent::random_sound(vec!["hit1.wav".into(), "hit2.wav".into(), "hit3.wav".into()]));
+                sound_writer.send(PlaySoundEvent::random_sound(vec![
+                    "hit1.wav".into(),
+                    "hit2.wav".into(),
+                    "hit3.wav".into(),
+                ]));
             }
         }
 
@@ -309,5 +333,8 @@ fn end_level(mut game: ResMut<Game>, mut game_state: ResMut<State<GameState>>) {
     //     }
     // }
     game.level += 1;
+    if game.level == 4 {
+        game.level = 0;
+    }
     game_state.set(GameState::StartLevel).unwrap();
 }

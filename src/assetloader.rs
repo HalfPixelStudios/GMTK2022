@@ -37,7 +37,7 @@ pub struct TroopPrefab {
     pub stats: StatsPrefab,
     pub default_dice: DicePrefab,
     pub anim: AnimationPrefab,
-    pub class: DiceTheme,
+    pub theme: DiceTheme,
 }
 
 pub struct AssetSheets(pub HashMap<String, Handle<TextureAtlas>>);

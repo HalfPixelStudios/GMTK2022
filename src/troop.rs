@@ -26,7 +26,7 @@ pub enum Tag {
     Enemy,
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Debug)]
 pub enum DiceTheme {
     Warrior,
     Cleric,
@@ -43,6 +43,7 @@ pub enum DiceTheme {
 #[derive(Component)]
 pub struct Dice {
     pub sides: [Side; 6],
+    pub theme: DiceTheme,
 }
 
 impl Dice {
@@ -145,13 +146,14 @@ fn spawn_troop_system(
                 },
                 texture_atlas: asset_sheet.0.get("assets").unwrap().clone(),
                 transform: Transform {
-                    translation: spawn_pos.extend(0.),
+                    translation: spawn_pos.extend(100.),
                     ..default()
                 },
                 ..default()
             })
             .insert(Dice {
                 sides: prefab.default_dice.sides.clone(),
+                theme: prefab.theme.clone(),
             })
             .insert(Stats::new(
                 prefab.stats.base_health,
