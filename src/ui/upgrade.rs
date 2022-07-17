@@ -5,11 +5,15 @@ use kayak_ui::{
     widgets::*,
 };
 
+use crate::game::GameState;
+
 pub struct UpgradePlugin;
 
 impl Plugin for UpgradePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_startup_system(render_ui).add_system(input_manager);
+        app.add_system_set(SystemSet::on_enter(GameState::SelectUpgrades).with_system(render_ui))
+            .add_system_set(SystemSet::on_update(GameState::SelectUpgrades).with_system(input_manager))
+            .add_system_set(SystemSet::on_exit(GameState::SelectUpgrades).with_system(destroy_ui));
     }
 }
 
@@ -58,6 +62,7 @@ fn UpgradeMenu() {
     let (chose_side, set_chose_side, ..) = use_state!(None as Option<(i32, i32)>);
     let (upgrade_cursor, set_upgrade_cursor, ..) = use_state!(0);
     let (dice_cursor, set_dice_cursor, ..) = use_state!((1,1));
+    let (page, set_page, ..) = use_state!(0);
 
     let input_binding = context.query_world::<Res<Binding<GlobalInput>>, _, _>(|input| input.clone());
     context.bind(&input_binding);
@@ -98,6 +103,18 @@ fn UpgradeMenu() {
         if input_binding.get().space {
             set_chose_side(Some(new_pos));
         }
+    }
+    // go to next page
+    if chose_side.is_some() {
+        set_page(page+1);
+
+        set_chose_upgrade(None);
+        set_chose_side(None);
+        set_upgrade_cursor(0);
+        set_dice_cursor((1,1));
+    }
+    if page >= 4 {
+
     }
 
     // styles
@@ -204,4 +221,8 @@ fn input_manager(input: Res<Input<KeyCode>>, binding: Res<Binding<GlobalInput>>)
     }
     binding.set(input_state);
 
+}
+
+fn destroy_ui(mut cmd: Commands) {
+    cmd.remove_resource::<BevyContext>();
 }

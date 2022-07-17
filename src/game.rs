@@ -17,6 +17,7 @@ pub enum GameState {
     EndTurn,
     EndRound,
     EndLevel,
+    SelectUpgrades,
 }
 
 pub struct NextTurnEvent;
@@ -282,5 +283,5 @@ fn end_level(game: Res<Game>, mut game_state: ResMut<State<GameState>>) {
     //         writer.send(StartLevelEvent { level: game.level });
     //     }
     // }
-    game_state.set(GameState::StartLevel).unwrap();
+    game_state.set(GameState::SelectUpgrades).unwrap();
 }
