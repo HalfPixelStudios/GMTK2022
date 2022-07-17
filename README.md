@@ -1,5 +1,5 @@
 
-# GMTK2022
+# talis
 
 Turn based dice-roller for GMTK 2022
 

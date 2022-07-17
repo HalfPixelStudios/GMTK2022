@@ -1,11 +1,11 @@
 [package]
-name = "GMTK2022"
+name = "talis"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["nithinmuthukumar", "MrPicklePinosaur"]
-description = ""
-repository = "https://github.com/HalfPixelStudios/GMTK2022"
+description = "Turn based dice-roller game made in bevy"
+repository = "https://github.com/HalfPixelStudios/talis"
 
 [features]
 default = ["bevy_sprite", "bevy_ui"]

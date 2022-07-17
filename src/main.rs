@@ -1,16 +1,16 @@
 use bevy::prelude::*;
 use bevy_bobs::sfx::AudioPlugin;
-use GMTK2022::animation::*;
-use GMTK2022::assetloader::*;
-use GMTK2022::camera::CameraPlugin;
-use GMTK2022::dice::DicePlugin;
-use GMTK2022::game::Game;
-use GMTK2022::game::GameState;
-use GMTK2022::game::NextTurnEvent;
-use GMTK2022::layers::Layers;
-use GMTK2022::map::MapPlugin;
-use GMTK2022::ui::UIPlugin;
-use GMTK2022::{assetloader::*, game::GamePlugin, troop::TroopPlugin};
+use talis::animation::*;
+use talis::assetloader::*;
+use talis::camera::CameraPlugin;
+use talis::dice::DicePlugin;
+use talis::game::Game;
+use talis::game::GameState;
+use talis::game::NextTurnEvent;
+use talis::layers::Layers;
+use talis::map::MapPlugin;
+use talis::ui::UIPlugin;
+use talis::{assetloader::*, game::GamePlugin, troop::TroopPlugin};
 
 pub struct RunOnce {
     ran: bool,
