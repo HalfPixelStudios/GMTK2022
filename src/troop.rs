@@ -20,7 +20,7 @@ pub struct DespawnTroopEvent {
 #[derive(Component)]
 pub struct Troop;
 
-#[derive(Component)]
+#[derive(Component, Clone, PartialEq, Debug)]
 pub enum Tag {
     Player,
     Enemy,
@@ -56,15 +56,20 @@ impl Dice {
 }
 #[derive(Component)]
 pub struct Stats {
+    base_health: u32,
+
     health: u32,
     speed: u32,
     defence: u32,
+
     // buffs: Vec<>
 }
 
 impl Stats {
     pub fn new(health: u32, speed: u32, defence: u32) -> Self {
         Stats {
+            base_health: health,
+
             health,
             speed,
             defence,
@@ -81,6 +86,9 @@ impl Stats {
         } else {
             self.health - amount
         };
+    }
+    pub fn base_health(&self) -> u32 {
+        self.base_health
     }
     pub fn is_dead(&self) -> bool {
         self.health == 0
@@ -124,6 +132,7 @@ fn spawn_troop_system(
         let e = cmd.spawn().id();
         cmd.entity(e)
             .insert(Troop)
+            .insert(Name::new(prefab.display_name.clone()))
             .insert_bundle(SpriteSheetBundle {
                 sprite: TextureAtlasSprite {
                     index: prefab.anim.frame_ranges.get(&AniState::Idle).unwrap().y as usize,

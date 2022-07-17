@@ -42,39 +42,34 @@ pub fn StatsBoard(props: StatsBoardProps) {
     };
 
     let troop_name = props.troop_name.clone();
+    let image_size = 16.;
 
     let container_style = Style {
         layout_type: StyleProp::Value(LayoutType::Column),
-        height: StyleProp::Value(Units::Pixels(200.)),
+        height: StyleProp::Value(Units::Pixels(80.)),
         ..Style::default()
     };
 
     let alpha = 0.5;
     let health_bar_box = Style {
         background_color: StyleProp::Value(Color { r: 0., g: 1., b: 0., a: alpha }),
-        max_width: StyleProp::Value(Units::Pixels(100.)),
-        max_height: StyleProp::Value(Units::Pixels(20.)),
         layout_type: StyleProp::Value(LayoutType::Row),
         ..Style::default()
     };
     let speed_box= Style {
         background_color: StyleProp::Value(Color { r: 0., g: 1., b: 1., a: alpha }),
-        max_width: StyleProp::Value(Units::Pixels(100.)),
-        max_height: StyleProp::Value(Units::Pixels(20.)),
         layout_type: StyleProp::Value(LayoutType::Row),
         ..Style::default()
     };
     let defence_box= Style {
         background_color: StyleProp::Value(Color { r: 1., g: 1., b: 0., a: alpha }),
-        max_width: StyleProp::Value(Units::Pixels(100.)),
-        max_height: StyleProp::Value(Units::Pixels(20.)),
         layout_type: StyleProp::Value(LayoutType::Row),
         ..Style::default()
     };
 
     let image_style = Style {
-        width: StyleProp::Value(Units::Pixels(16.)),
-        height: StyleProp::Value(Units::Pixels(16.)),
+        width: StyleProp::Value(Units::Pixels(image_size)),
+        height: StyleProp::Value(Units::Pixels(image_size)),
         ..Style::default()
     };
     let health_bar_style = Style {
