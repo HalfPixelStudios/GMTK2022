@@ -17,8 +17,17 @@ impl Plugin for MapPlugin {
             .add_startup_system(setup);
     }
 }
+
+fn setup(mut cmd: Commands, asset_server: Res<AssetServer>) {
+    let handle = asset_server.load("map/map/png/World.png");
+    cmd.spawn_bundle(SpriteBundle {
+        texture: handle,
+        ..default()
+    });
+}
+
 #[autodefault]
-fn setup(mut cmd: Commands, asset_server: Res<AssetServer>, layers: Res<Layers>) {
+fn _setup(mut cmd: Commands, asset_server: Res<AssetServer>, layers: Res<Layers>) {
     cmd.spawn_bundle(LdtkWorldBundle {
         transform: Transform {
             translation: Vec3::new(
