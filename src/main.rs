@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_bobs::sfx::AudioPlugin;
 use GMTK2022::animation::*;
 use GMTK2022::assetloader::*;
 use GMTK2022::camera::CameraPlugin;
@@ -30,6 +31,7 @@ fn main() {
     app.add_plugins(DefaultPlugins)
         .add_plugin(AssetLoadPlugin)
         .add_plugin(AnimationPlugin)
+        .add_plugin(AudioPlugin)
         // .add_system(spawn_devil)
         .insert_resource(RunOnce { ran: false })
         .insert_resource(Layers::new())

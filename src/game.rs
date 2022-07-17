@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_bobs::sfx::PlaySoundEvent;
 
 use crate::{
     animation::*,
@@ -247,6 +248,7 @@ fn end_turn(
     dice_result: Res<DiceResult>,
     mut game_state: ResMut<State<GameState>>,
     mut troop_query: Query<(Entity, &Dice, &mut Stats, &Tag)>,
+    mut sound_writer: EventWriter<PlaySoundEvent>,
 ) {
     info!("end_turn");
     info!("{:?}", game.turn_order);
@@ -259,6 +261,7 @@ fn end_turn(
     let next_turn = game.turn_order.pop().unwrap();
 
     let tag = troop_query.get_component::<Tag>(next_turn).unwrap();
+
     match dice_result.result.clone() {
         Side::Blank => {
             info!("rolled a blank");
@@ -280,6 +283,8 @@ fn end_turn(
                     .get_component_mut::<Stats>(target.clone())
                     .unwrap();
                 target_stat.take_damage(num);
+
+                sound_writer.send(PlaySoundEvent::random_sound(vec!["hit1.wav".into(), "hit2.wav".into(), "hit3.wav".into()]));
             }
         }
 
