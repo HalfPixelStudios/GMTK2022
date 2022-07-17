@@ -20,6 +20,7 @@ struct GlobalInput {
     right: bool,
     up: bool,
     down: bool,
+    space: bool,
 }
 
 fn render_ui(mut cmd: Commands) {
@@ -53,19 +54,49 @@ fn render_ui(mut cmd: Commands) {
 #[widget]
 fn UpgradeMenu() {
     
-    let (chose_upgrade, set_chose_upgrade, ..) = use_state!(false);
+    let (chose_upgrade, set_chose_upgrade, ..) = use_state!(None as Option<i32>);
+    let (chose_side, set_chose_side, ..) = use_state!(None as Option<(i32, i32)>);
     let (upgrade_cursor, set_upgrade_cursor, ..) = use_state!(0);
+    let (dice_cursor, set_dice_cursor, ..) = use_state!((1,1));
 
     let input_binding = context.query_world::<Res<Binding<GlobalInput>>, _, _>(|input| input.clone());
     context.bind(&input_binding);
 
     // update state
-    if !chose_upgrade {
+    if chose_upgrade.is_none() {
         if input_binding.get().left {
-            set_upgrade_cursor((upgrade_cursor-1).min(0));
+            set_upgrade_cursor((upgrade_cursor-1).clamp(0, 2));
         }
         if input_binding.get().right {
-            set_upgrade_cursor((upgrade_cursor+1).max(2));
+            set_upgrade_cursor((upgrade_cursor+1).clamp(0 ,2));
+        }
+        if input_binding.get().space {
+            set_chose_upgrade(Some(upgrade_cursor));
+        }
+    }
+    if chose_upgrade.is_some() && chose_side.is_none() {
+        let dir = if input_binding.get().left {
+            (-1, 0)
+        }
+        else if input_binding.get().right {
+            (1, 0)
+        }
+        else if input_binding.get().up {
+            (0, -1)
+        }
+        else if input_binding.get().down {
+            (0, 1)
+        } else { (0, 0) };
+
+        let allowed_pos = vec![(1, 0), (0, 1), (1, 1), (2, 1), (1, 2), (1, 3)];
+
+        let new_pos = (dice_cursor.0+dir.0, dice_cursor.1+dir.1);
+        if allowed_pos.contains(&new_pos) {
+            set_dice_cursor(new_pos);
+        }
+
+        if input_binding.get().space {
+            set_chose_side(Some(new_pos));
         }
     }
 
@@ -96,50 +127,50 @@ fn UpgradeMenu() {
         height: StyleProp::Value(Units::Pixels(grid_width)),
         ..Style::default()
     };
-    let grid_item1 = Style {
-        background_color: StyleProp::Value(Color { r: 0.0, g: 0.7, b: 0.7, a: 1.0 }),
-        width: StyleProp::Value(Units::Pixels(grid_width)),
-        height: StyleProp::Value(Units::Pixels(grid_width)),
-        ..Style::default()
-    };
-    let grid_item2 = Style {
-        background_color: StyleProp::Value(Color { r: 0.7, g: 0.7, b: 0.0, a: 1.0 }),
-        width: StyleProp::Value(Units::Pixels(grid_width)),
-        height: StyleProp::Value(Units::Pixels(grid_width)),
-        ..Style::default()
-    };
 
     rsx! {
         <>
             <Element styles={Some(container_rows)}>
-                <Element styles={Some(container_columns)}>
-                    <Background styles={Some(grid_item1)}></Background>
-                    <Background styles={Some(grid_item2)}></Background>
-                    <Background styles={Some(grid_item1)}></Background>
-                </Element>
-                <Element styles={Some(container_columns)}>
-                    <Background styles={Some(grid_item2)}></Background>
-                    <Background styles={Some(grid_item1)}></Background>
-                    <Background styles={Some(grid_item2)}></Background>
-                </Element>
-                <Element styles={Some(container_columns)}>
-                    <Background styles={Some(grid_item1)}></Background>
-                    <Background styles={Some(grid_item2)}></Background>
-                    <Background styles={Some(grid_item1)}></Background>
-                </Element>
-                <Element styles={Some(container_columns)}>
-                    <Background styles={Some(grid_item2)}></Background>
-                    <Background styles={Some(grid_item1)}></Background>
-                    <Background styles={Some(grid_item2)}></Background>
-                </Element>
+                {VecTracker::from((0..=3).map(|y| {
+                    let container_columns = Style {
+                        layout_type: StyleProp::Value(LayoutType::Row),
+                        width: StyleProp::Value(Units::Pixels(grid_width * 3.)),
+                        height: StyleProp::Value(Units::Pixels(grid_width)),
+                        ..Style::default()
+                    };
+                    constructor! {
+                        <Element styles={Some(container_columns)}>
+                            {VecTracker::from((0..=2).map(|x| {
+                                let mut styles = Style {
+                                    background_color: StyleProp::Value(Color { r: 0.0, g: 0.7, b: 0.7, a: 1.0 }),
+                                    width: StyleProp::Value(Units::Pixels(grid_width)),
+                                    height: StyleProp::Value(Units::Pixels(grid_width)),
+                                    ..Style::default()
+                                };
+                                if chose_upgrade.is_some() && chose_side.is_none() && (x,y) == dice_cursor {
+                                    styles.border_color = StyleProp::Value(Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 });
+                                    styles.border = StyleProp::Value(Edge::all(2.));
+                                };
+                                constructor! {
+                                    <Background styles={Some(styles)}></Background>
+                                }
+                            }))}
+                        </Element>
+                    }
+                }))}
             </Element>
 
             <Background styles={Some(grid_item0)}></Background>
 
             <Element styles={Some(upgrade_columns)}>
                 {VecTracker::from((0..=2).map(|i| {
-                    let mut styles = grid_item1.clone();
-                    if !chose_upgrade && i == upgrade_cursor {
+                    let mut styles = Style {
+                        background_color: StyleProp::Value(Color { r: 0.0, g: 0.7, b: 0.7, a: 1.0 }),
+                        width: StyleProp::Value(Units::Pixels(grid_width)),
+                        height: StyleProp::Value(Units::Pixels(grid_width)),
+                        ..Style::default()
+                    };
+                    if chose_upgrade.is_none() && i == upgrade_cursor {
                         styles.border_color = StyleProp::Value(Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 });
                         styles.border = StyleProp::Value(Edge::all(2.));
                     };
@@ -167,6 +198,9 @@ fn input_manager(input: Res<Input<KeyCode>>, binding: Res<Binding<GlobalInput>>)
     }
     if input.just_pressed(KeyCode::Down) {
         input_state.down = true;
+    }
+    if input.just_pressed(KeyCode::Space) {
+        input_state.space = true;
     }
     binding.set(input_state);
 
